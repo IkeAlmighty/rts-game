@@ -35,26 +35,52 @@ def main():
 
     clock = pygame.time.Clock()
     running = True
+
+    def draw_screen():
+        screen.fill((0,0,0))
+
+        screen.blit(gameMap.image, gameMap.rect.topleft)
+
+        #display mouse position relative to the game map
+        rel_mouse_pos = [pygame.mouse.get_pos()[0] - gameMap.rect.x, pygame.mouse.get_pos()[1] - gameMap.rect.y]
+        pos_pane = font.render(rel_mouse_pos.__str__(), False, colordefs.WHITE, colordefs.BLACK)
+        screen.blit(pos_pane, (0, 0))
+
+        buttonGroup.draw(screen)
+
+        if controls.mouse_clicked(0):
+            selection = controls.get_selection(gameMap)
+            for entity in selection:
+                gameMap.eraseEntity(entity)
+
+        if pygame.mouse.get_pressed()[0]:
+            controls.update_selection_box(screen)
+
+        pygame.display.flip()
     
+
+    #event loop:
     while(running):
-        for event in pygame.event.get():
-            if event.type == pygame.KEYDOWN:
-                if event.key == pygame.K_SPACE:
-                    if controls.locked == False:
-                        controls.locked = True
-                        bufferImage = gameMap.image.copy()
-                        miniWidth = int(gameMap.width*scr_height/gameMap.height)
-                        gameMap.image = pygame.transform.scale(gameMap.image, (miniWidth, scr_height))
-                        gameMap.rect.x = int(scr_width/2) - (miniWidth/2)
-                        gameMap.rect.y = 0
-                    elif controls.locked == True:
-                        controls.locked = False
-                        gameMap.image = bufferImage
-                        #TODO: set the x and y to center on the mouse, with the new res
+
+        #update controls:
+        controls.update()
+
+        if controls.key_is_pressed(pygame.K_SPACE):
+            if controls.locked == False:
+                controls.locked = True
+                bufferImage = gameMap.image.copy()
+                miniWidth = int(gameMap.width*scr_height/gameMap.height)
+                gameMap.image = pygame.transform.scale(gameMap.image, (miniWidth, scr_height))
+                gameMap.rect.x = int(scr_width/2) - (miniWidth/2)
+                gameMap.rect.y = 0
+            elif controls.locked == True:
+                controls.locked = False
+                gameMap.image = bufferImage
+                #TODO: set the x and y to center on the mouse, with the new res
                         
 
-                if event.key == pygame.K_q:
-                    running = False
+        if controls.key_is_pressed(pygame.K_q):
+            running = False
 
         ####
         if not controls.locked:
@@ -80,32 +106,11 @@ def main():
                 gameMap.rect.y -= controls.scrollspeed
                 if controls.select_box_start != None:
                     controls.select_box_start[1] -= controls.scrollspeed
-
         ####
 
-        screen.fill((0,0,0))
+        draw_screen()
 
-        screen.blit(gameMap.image, gameMap.rect.topleft)
-
-        #display mouse position relative to the game map
-        rel_mouse_pos = [pygame.mouse.get_pos()[0] - gameMap.rect.x, pygame.mouse.get_pos()[1] - gameMap.rect.y]
-        pos_pane = font.render(rel_mouse_pos.__str__(), False, colordefs.WHITE, colordefs.BLACK)
-        screen.blit(pos_pane, (0, 0))
-
-        buttonGroup.draw(screen)
-
-        if controls.mouse_clicked(0):
-            selection = controls.get_selection(gameMap)
-            for entity in selection:
-                gameMap.eraseEntity(entity)
-
-        if pygame.mouse.get_pressed()[0]:
-            controls.update_selection_box(screen)
-
-        pygame.display.flip()
-
-        #events should be processed before the next two lines:
-        controls.last_frame = pygame.event.get().copy()
+        #mouse events need to be processed before this copy:
         controls.last_frame_mouse = pygame.mouse.get_pressed()
 
         clock.tick(60)

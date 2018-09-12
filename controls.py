@@ -1,6 +1,9 @@
-import pygame, math, entities, gamemapping, pygame.font, colordefs, preloading
+import pygame, math, entities, gamemapping, pygame.font, colordefs, preloading, pygame.time
 
-last_frame = pygame.event.get().copy() #stores the events from last frame
+__keyPresses = []
+
+last_update = pygame.time.get_ticks()
+
 last_frame_mouse = pygame.mouse.get_pressed()
 
 scrollspeed = 25
@@ -11,6 +14,25 @@ select_box_start = None
 blitPoint = None
 
 select_box = None
+
+def update():
+    events = pygame.event.get()
+    for event in events:
+        if event.type == pygame.KEYDOWN:
+            add_key_press(event.key)
+        elif event.type == pygame.KEYUP:
+            remove_key_press(event.key)
+
+def add_key_press(key):
+    if key not in __keyPresses:
+        __keyPresses.append(key)
+
+def remove_key_press(key):
+    if key in __keyPresses:
+        __keyPresses.remove(key)
+
+def key_is_pressed(key):
+    return key in __keyPresses 
 
 def mouse_clicked(button_index):
     return not pygame.mouse.get_pressed()[button_index] and last_frame_mouse[button_index] == True
