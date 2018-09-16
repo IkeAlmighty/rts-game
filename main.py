@@ -24,11 +24,11 @@ def main():
     buttonGroup.add(button)
 
     ###
-    mapSize = (500, 500) #mapsize * squ_width is the pixel size (squ_width is defined in the mapping module)
+    mapSize = (1000, 1000) #mapsize * squ_width is the pixel size (squ_width is defined in the mapping module)
     startTime = pygame.time.get_ticks()
     gameMap = GameMap(mapSize)
     bufferImage = gameMap.image.copy()
-    print("generated ", mapSize[0]*mapSize[1], " pixel map in ", pygame.time.get_ticks() - startTime, " ms")
+    print("generated ", mapSize[0]*mapSize[1], " block map in ", pygame.time.get_ticks() - startTime, " ms")
     ###
 
     entities.add_entity(Entity("UNIT", (100, 100)))
@@ -65,7 +65,7 @@ def main():
         #update controls:
         controls.update()
 
-        if controls.key_is_pressed(pygame.K_SPACE):
+        if controls.key_released(pygame.K_SPACE):
             if controls.locked == False:
                 controls.locked = True
                 bufferImage = gameMap.image.copy()
@@ -79,7 +79,7 @@ def main():
                 #TODO: set the x and y to center on the mouse, with the new res
                         
 
-        if controls.key_is_pressed(pygame.K_q):
+        if controls.key_released(pygame.K_q):
             running = False
 
         ####

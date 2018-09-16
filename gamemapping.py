@@ -15,7 +15,9 @@ squ_width = 4
 #set thresholds for terrain:
 water = (0.1, 0.1999)
 grassland = (0.2, 0.2999)
-mountains = (0.3, 0.3999)
+mountain_low = (0.3, 0.3999)
+mountain_mid = (0.4, 0.5999)
+mountain_high = (0.6, 0.7)
 
 def within(val, tuple):
         return val >= tuple[0] and val <= tuple[1]
@@ -40,7 +42,9 @@ def generate_map(size):
             #normalize all the values:
             if value < 0.5: value = water[0]
             elif value < 0.70: value = grassland[0]
-            else: value = mountains[0]
+            elif value < 0.75: value = mountain_low[0]
+            elif value < 0.80: value = mountain_mid[0]
+            else: value = mountain_high[0]
             
             #set the value
             vmap[x*height + y] = value
@@ -80,8 +84,12 @@ class GameMap(pygame.sprite.Sprite):
                     self.image.fill(colordefs.WATER, rect)
                 elif within(value, grassland):
                     self.image.fill(colordefs.LOWLAND, rect)
-                elif within(value, mountains):
-                    self.image.fill(colordefs.HIGHLAND, rect)
+                elif within(value, mountain_low):
+                    self.image.fill(colordefs.MOUNTAIN_LOW, rect)
+                elif within(value, mountain_mid):
+                    self.image.fill(colordefs.MOUNTAIN_MID, rect)
+                elif within(value, mountain_high):
+                    self.image.fill(colordefs.MOUNTAIN_HIGH, rect)
                 else:
                     self.image.fill(colordefs.RED, rect)
 

@@ -2,6 +2,16 @@ import pygame, math, entities, gamemapping, pygame.font, colordefs, preloading, 
 
 __keyPresses = []
 
+# keypresses are popped off the keypress log list
+# a set time after they are inserted into it. The popping
+# happens within controls.update() method.
+__keypress_log = [] 
+__keypress_log_tstamps = []
+
+# same as the keypress log.
+__keyrelease_log = []
+__keyrelease_log_tstamps = []
+
 last_update = pygame.time.get_ticks()
 
 last_frame_mouse = pygame.mouse.get_pressed()
@@ -17,22 +27,46 @@ select_box = None
 
 def update():
     events = pygame.event.get()
+    # update key presses and key releases
     for event in events:
         if event.type == pygame.KEYDOWN:
             add_key_press(event.key)
         elif event.type == pygame.KEYUP:
             remove_key_press(event.key)
+    
+    # keypress_log popping
+    tstamp_current = pygame.time.get_ticks()
+    for key in __keypress_log:
+        t_index = __keypress_log.index(key)
+        if tstamp_current - __keypress_log_tstamps[t_index] > 10:
+            __keypress_log.remove(key)
+            __keypress_log_tstamps.pop(t_index)
+
+    # keyrelease_log popping
+    tstamp_current = pygame.time.get_ticks()
+    for key in __keyrelease_log:
+        t_index = __keyrelease_log.index(key)
+        if tstamp_current - __keyrelease_log_tstamps[t_index] > 10:
+            __keyrelease_log.remove(key)
+            __keyrelease_log_tstamps.pop(t_index)
 
 def add_key_press(key):
     if key not in __keyPresses:
         __keyPresses.append(key)
+    __keypress_log.insert(0, key)
+    __keypress_log_tstamps.insert(0, pygame.time.get_ticks())
 
 def remove_key_press(key):
     if key in __keyPresses:
         __keyPresses.remove(key)
+    __keyrelease_log.insert(0, key)
+    __keyrelease_log_tstamps.insert(0, pygame.time.get_ticks())
 
-def key_is_pressed(key):
+def key_pressed(key):
     return key in __keyPresses 
+
+def key_released(key):
+    return key in __keyrelease_log
 
 def mouse_clicked(button_index):
     return not pygame.mouse.get_pressed()[button_index] and last_frame_mouse[button_index] == True
