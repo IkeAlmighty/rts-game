@@ -27,27 +27,15 @@ def generate_map(size):
     width = size[0]
     height = size[1]
     vmap = [0.0 for i in range(width*height)]
+            
+    #mark the peaks:
+    peaks = []
+    for i in range(5):
+        peaks.append((random.randint(0, width - 1, random.ranint(0, height - 1))))
 
-    #generate a noisy map:
-    noiseYOff = random.randint(0, 100000)
-    noiseXOff = random.randint(0, 100000)
-    for x in range(0, width):
-        for y in range(0, height):
-            #the following math is kinda just spitballing (after perlin noise) to get height values I like
-            value = noise.pnoise2(float((x + noiseXOff)/width), float((y + noiseYOff)/height), 6)
-            value = math.sin(value) + 0.5
-            if value < 0.0: value = 0.0
-            if value > 1.0: value = 1.0
+    for peak in peaks:
+        for x in range(peak[0] - 100, peak[0] + 100):
             
-            #normalize all the values:
-            if value < 0.5: value = water[0]
-            elif value < 0.70: value = grassland[0]
-            elif value < 0.75: value = mountain_low[0]
-            elif value < 0.80: value = mountain_mid[0]
-            else: value = mountain_high[0]
-            
-            #set the value
-            vmap[x*height + y] = value
 
     return vmap
 
