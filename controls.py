@@ -133,7 +133,7 @@ class Button(pygame.sprite.Sprite):
             font = pygame.font.SysFont('', 16)
             self.image = pygame.Surface((deminsions[2], deminsions[3]))
             buttonpane = font.render(text, False, colordefs.WHITE)
-            self.image.blit(buttonpane, (2, self.image.get_rect()[1]/2 - buttonpane.get_rect()[1]/2))
+            self.image.blit(buttonpane, (5, self.image.get_rect()[3]/2 - buttonpane.get_rect()[3]/2))
         if image is not None:
             print("button with image")
             self.image = image
