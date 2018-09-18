@@ -65,7 +65,7 @@ class Entity(pygame.sprite.Sprite):
         self.structure_type = structure_type #TODO rename this
 
         self.rect = self.image.get_rect()
-        self.rect = self.rect.move(location[0], location[1])
+        self.rect = self.rect.move(self.location[0], self.location[1])
     
     def get_owner(self):
         return self.owner

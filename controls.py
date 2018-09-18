@@ -139,8 +139,6 @@ class Button(pygame.sprite.Sprite):
             self.image = image
 
         self.rect = self.image.get_rect()
-        self.rect.move(deminsions[0], deminsions[1])
-        print(deminsions)
-        print(self.image.get_rect())
+        self.rect = self.rect.move(deminsions[0], deminsions[1])
     
 
