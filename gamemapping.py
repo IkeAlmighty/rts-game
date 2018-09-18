@@ -13,29 +13,34 @@ from entities import Entity
 squ_width = 4
 
 #set thresholds for terrain:
-water = (0.1, 0.1999)
-grassland = (0.2, 0.2999)
-mountain_low = (0.3, 0.3999)
-mountain_mid = (0.4, 0.5999)
-mountain_high = (0.6, 0.7)
+water = (0.0, 0.2)
+grassland = (0.2, 0.3)
+mountain_low = (0.3, 0.4)
+mountain_mid = (0.4, 0.6)
+mountain_high = (0.6, 1.1)
 
 def within(val, tuple):
-        return val >= tuple[0] and val <= tuple[1]
+        return val >= tuple[0] and val < tuple[1]
 
 def generate_map(size):
 
     width = size[0]
     height = size[1]
     vmap = [0.0 for i in range(width*height)]
-            
+    
+    max_distance = math.sqrt((width)**2 + (height)**2)
+
     #mark the peaks:
     peaks = []
     for i in range(5):
-        peaks.append((random.randint(0, width - 1, random.ranint(0, height - 1))))
+        peaks.append((random.randint(0, width - 1), random.randint(0, height - 1), 0.25*math.cos(random.randint(0, int(2*math.pi*100))) + 0.75))
 
-    for peak in peaks:
-        for x in range(peak[0] - 100, peak[0] + 100):
+    print(peaks)
+    for x in range(0, width):
+        for y in range(0, height):
+            """   
             
+            """
 
     return vmap
 
