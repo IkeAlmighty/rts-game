@@ -1,5 +1,7 @@
 import pygame, math, entities, gamemapping, pygame.font, colordefs, preloading, pygame.time
 
+events = []
+
 __keyPresses = []
 
 # keypresses are popped off the keypress log list
@@ -26,6 +28,7 @@ blitPoint = None
 select_box = None
 
 def update():
+    global events
     events = pygame.event.get()
     # update key presses and key releases
     for event in events:
