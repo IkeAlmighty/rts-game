@@ -31,14 +31,13 @@ def main():
     ###
     mapSize = (1000, 1000) #mapsize * squ_width is the pixel size (squ_width is defined in the mapping module)
     startTime = pygame.time.get_ticks()
-    gameMap = GameMap(mapSize)
-    bufferImage = gameMap.image.copy()
+    gamemap = GameMap(mapSize)
     print("generated ", mapSize[0]*mapSize[1], " block map in ", pygame.time.get_ticks() - startTime, " ms")
     ###
 
     unit = Entity("UNIT", (100, 100))
     entities.add_entity(unit)
-    gameMap.drawEntity(unit)
+    gamemap.drawEntity(unit)
 
     clock = pygame.time.Clock()
     running = True
@@ -52,16 +51,9 @@ def main():
         if controls.key_released(pygame.K_SPACE):
             if controls.locked == False:
                 controls.locked = True
-                bufferImage = gameMap.image.copy()
-                miniWidth = int(gameMap.width*scr_height/gameMap.height)
-                gameMap.image = pygame.transform.scale(gameMap.image, (miniWidth, scr_height))
-                gameMap.rect.x = int(scr_width/2) - (miniWidth/2)
-                gameMap.rect.y = 0
             elif controls.locked == True:
                 controls.locked = False
-                gameMap.image = bufferImage
                 #TODO: set the x and y to center on the mouse, with the new res
-                        
 
         if controls.key_released(pygame.K_q):
             running = False
@@ -71,43 +63,54 @@ def main():
             mouseX = pygame.mouse.get_pos()[0]
             mouseY = pygame.mouse.get_pos()[1]
 
-            if mouseX < 5 and gameMap.rect.x < 500:
-                gameMap.rect.x += controls.scrollspeed
+            if mouseX < 5 and gamemap.rect.x < 500:
+                gamemap.rect.x += controls.scrollspeed
                 if controls.select_box_start != None:
                     controls.select_box_start[0] += controls.scrollspeed
 
-            if mouseX > scr_width - 5 and gameMap.rect.x + gameMap.width > scr_width - 500:
-                gameMap.rect.x -= controls.scrollspeed
+            if mouseX > scr_width - 5 and gamemap.rect.x + gamemap.width > scr_width - 500:
+                gamemap.rect.x -= controls.scrollspeed
                 if controls.select_box_start != None:
                     controls.select_box_start[0] -= controls.scrollspeed
 
-            if mouseY < 5 and gameMap.rect.y < 500:
-                gameMap.rect.y += controls.scrollspeed
+            if mouseY < 5 and gamemap.rect.y < 500:
+                gamemap.rect.y += controls.scrollspeed
                 if controls.select_box_start != None:
                     controls.select_box_start[1] += controls.scrollspeed
 
-            if mouseY > scr_height - 5 and gameMap.rect.y + gameMap.height > scr_width - 500:
-                gameMap.rect.y -= controls.scrollspeed
+            if mouseY > scr_height - 5 and gamemap.rect.y + gamemap.height > scr_width - 500:
+                gamemap.rect.y -= controls.scrollspeed
                 if controls.select_box_start != None:
                     controls.select_box_start[1] -= controls.scrollspeed
         ####
 
         screen.fill((0,0,0))
 
-        screen.blit(gameMap.image, gameMap.rect.topleft)
+        screen.blit(gamemap.image, gamemap.rect.topleft)
+
+        if controls.locked: #show the mini map if controls are locked
+            minimap = gamemap.image.copy()
+            minimap.set_alpha(220)
+            miniWidth = int(gamemap.width*scr_height/gamemap.height)
+            minimap = pygame.transform.scale(minimap, (miniWidth, scr_height))
+            x = int(scr_width/2) - (miniWidth/2)
+            y = 0
+            screen.blit(minimap, (x, y))
+            gamemap.image.set_alpha(100)
+        else:
+            if gamemap.image.get_alpha() != 255:
+                gamemap.image.set_alpha(255)
+            buttonGroup.draw(screen) #draws every frame so that animations can properly happen
 
         #display mouse position relative to the game map
-        rel_mouse_pos = [pygame.mouse.get_pos()[0] - gameMap.rect.x, pygame.mouse.get_pos()[1] - gameMap.rect.y]
+        rel_mouse_pos = [pygame.mouse.get_pos()[0] - gamemap.rect.x, pygame.mouse.get_pos()[1] - gamemap.rect.y]
         pos_pane = font.render(rel_mouse_pos.__str__(), False, colordefs.WHITE, colordefs.BLACK)
         screen.blit(pos_pane, (0, 0))
 
-        if not controls.locked:
-            buttonGroup.draw(screen)
-
         if controls.mouse_clicked(0):
-            selection = controls.get_selection(gameMap)
+            selection = controls.get_selection(gamemap)
             for entity in selection:
-                gameMap.eraseEntity(entity)
+                gamemap.eraseEntity(entity)
                 entities.remove_entity(entity)
 
         if pygame.mouse.get_pressed()[0]:
