@@ -126,15 +126,19 @@ class Button(pygame.sprite.Sprite):
 
     #colors should be a list of two colors, the first color is the background
     #color and the second color is the foreground (text) color.
-    def __init__(self, colors, deminsions, text = None, image = None):
+    def __init__(self, colors, deminsions, ident = None, text = None, image = None, colorfill = colordefs.GREY_BLUE):
         super().__init__()
 
         self.image = None
+        if ident == None and text != None:
+            self.id = text
+        else:
+            self.id = ident
 
         if text is not None:
             font = pygame.font.SysFont('', 16)
             self.image = pygame.Surface((deminsions[2], deminsions[3]))
-            self.image.fill(colordefs.GREY_BLUE)
+            self.image.fill(colorfill)
             buttonpane = font.render(text, False, colordefs.WHITE)
             self.image.blit(buttonpane, (5, self.image.get_rect()[3]/2 - buttonpane.get_rect()[3]/2))
         if image is not None:
@@ -143,3 +147,6 @@ class Button(pygame.sprite.Sprite):
 
         self.rect = self.image.get_rect()
         self.rect = self.rect.move(deminsions[0], deminsions[1])
+
+    def get_id(self):
+        return self.id

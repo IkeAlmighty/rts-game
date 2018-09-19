@@ -1,4 +1,5 @@
-import pygame, os, sys, broadcasting, network, gamemapping, colordefs, preloading, entities
+import pygame, os, sys
+import broadcasting, network, gamemapping, colordefs, preloading, entities
 from gamemapping import GameMap
 from pygame.sprite import Group
 from entities import Entity
@@ -18,14 +19,21 @@ def main():
 
     font = pygame.font.SysFont('', 16)
 
-    slot_bttn_group = Group()
+    unit_slot_bttns = Group()
+    building_slot_bttns = Group()
+    slot_buttons = unit_slot_bttns
 
     bttn_pos = [scr_width - 50, scr_height - 50]
     for i in range(0, 10):
-        text = "SLOT " + i.__str__()
-        button = Button(None, (bttn_pos[0], bttn_pos[1], 48, 48), text=text)
+        unit_text = "UNIT " + i.__str__()
+        building_text = "BUILD " + i.__str__()
+
+        unit_button = Button(None, (bttn_pos[0], bttn_pos[1], 48, 48), text=unit_text)
+        building_button = Button(None, (bttn_pos[0], bttn_pos[1], 48, 48), text=building_text, colorfill=colordefs.BROWN)
+
         bttn_pos[0] -= 50
-        slot_bttn_group.add(button)
+        unit_slot_bttns.add(unit_button)
+        building_slot_bttns.add(building_button)
 
     ###
     mapSize = (1000, 1000) #mapsize * squ_width is the pixel size (squ_width is defined in the mapping module)
@@ -62,8 +70,25 @@ def main():
                 controls.locked = True
             elif controls.locked == True:
                 controls.locked = False
-                #TODO: set the x and y to center on the mouse, with the new res
+                #set the x and y to center on the mouse, with the new res
+                miniWidth = int(gamemap.width*scr_height/gamemap.height)
+                minimap_x = int(scr_width/2) - (miniWidth/2)
+                
+                rel_pos_minimap = (pygame.mouse.get_pos()[0] - minimap_x, pygame.mouse.get_pos()[1])
+                minimap_size = (miniWidth, scr_height)
+
+                x = rel_pos_minimap[0] * gamemap.width / minimap_size[0]
+                y = rel_pos_minimap[1] * gamemap.height / minimap_size[1]
+
+                gamemap.rect.x = -1*x + scr_width/2
+                gamemap.rect.y = -1*y + scr_height/2
         
+        #toggle the unit/building slot buttons on when alt key is pressed:
+        if controls.key_released(pygame.K_LALT) or controls.key_released(pygame.K_RALT):
+            if slot_buttons == unit_slot_bttns:
+                slot_buttons = building_slot_bttns
+            else:
+                slot_buttons = unit_slot_bttns
 
         #MAP SCROLLING LOGIC:
         ####
@@ -110,7 +135,7 @@ def main():
         else:
             if gamemap.image.get_alpha() != 255:
                 gamemap.image.set_alpha(255)
-            slot_bttn_group.draw(screen) #draws every frame so that animations can properly happen
+            slot_buttons.draw(screen) #draws every frame so that animations can properly happen
 
         #display mouse position relative to the game map
         rel_mouse_pos = [pygame.mouse.get_pos()[0] - gamemap.rect.x, pygame.mouse.get_pos()[1] - gamemap.rect.y]
