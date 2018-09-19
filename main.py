@@ -18,14 +18,14 @@ def main():
 
     font = pygame.font.SysFont('', 16)
 
-    buttonGroup = Group()
-    unit_bttns = []
+    slot_bttn_group = Group()
+
     bttn_pos = [scr_width - 50, scr_height - 50]
     for i in range(0, 10):
         text = "SLOT " + i.__str__()
         button = Button(None, (bttn_pos[0], bttn_pos[1], 48, 48), text=text)
         bttn_pos[0] -= 50
-        buttonGroup.add(button)
+        slot_bttn_group.add(button)
 
     ###
     mapSize = (1000, 1000) #mapsize * squ_width is the pixel size (squ_width is defined in the mapping module)
@@ -110,7 +110,7 @@ def main():
         else:
             if gamemap.image.get_alpha() != 255:
                 gamemap.image.set_alpha(255)
-            buttonGroup.draw(screen) #draws every frame so that animations can properly happen
+            slot_bttn_group.draw(screen) #draws every frame so that animations can properly happen
 
         #display mouse position relative to the game map
         rel_mouse_pos = [pygame.mouse.get_pos()[0] - gamemap.rect.x, pygame.mouse.get_pos()[1] - gamemap.rect.y]
