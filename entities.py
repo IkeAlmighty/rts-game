@@ -1,31 +1,11 @@
-#NOTES ON ENTITY VALUES IN THE VAL MAP:
-# a value on the game value map follows: 0.abcdefg
-# 'a' signifies the landtype. 1 = water, 2 = grassland, 3 = mountains
-# 'b' signifies what general entity type is on the tile. 0 = None, 1 = building, 2 = unit
-# 'c' signifies the owner of any object on the tile. 
-# 'defg' signify the index number of the object in the entities.all_entities list.
-
-
 import pygame, preloading
 from pygame.sprite import Sprite
 
 all_entities = []
 
-
-#Returns the entity val map number with 0 as the landtype.
-#This works real janky like with the value map so that
-#both the value map and the entity list can updated at the 
-#same time.
 def add_entity(entity):
-    valMapNum = 0.0
-    index = len(all_entities) + 1
-    valMapNum += float(entity.get_owner()) / 1000
-    valMapNum += float(entity.get_structure_type()) / 100
-    valMapNum += float(index) / 10000000
-
-    all_entities.append(entity)
-
-    return valMapNum
+    if entity not in all_entities:
+        all_entities.append(entity)
 
 def remove_entity(entity):
     if entity in all_entities:
