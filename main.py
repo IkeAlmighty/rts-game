@@ -19,9 +19,14 @@ def main():
 
     font = pygame.font.SysFont('', 16)
 
-    button = Button(None, (100, 100, 40, 30), text="button")
     buttonGroup = Group()
-    buttonGroup.add(button)
+    unit_bttns = []
+    bttn_pos = [scr_width - 50, scr_height - 50]
+    for i in range(0, 10):
+        text = "SLOT " + i.__str__()
+        button = Button(None, (bttn_pos[0], bttn_pos[1], 48, 48), text=text)
+        bttn_pos[0] -= 50
+        buttonGroup.add(button)
 
     ###
     mapSize = (1000, 1000) #mapsize * squ_width is the pixel size (squ_width is defined in the mapping module)
@@ -31,33 +36,12 @@ def main():
     print("generated ", mapSize[0]*mapSize[1], " block map in ", pygame.time.get_ticks() - startTime, " ms")
     ###
 
-    entities.add_entity(Entity("UNIT", (100, 100)))
+    unit = Entity("UNIT", (100, 100))
+    entities.add_entity(unit)
+    gameMap.drawEntity(unit)
 
     clock = pygame.time.Clock()
     running = True
-
-    def draw_screen():
-        screen.fill((0,0,0))
-
-        screen.blit(gameMap.image, gameMap.rect.topleft)
-
-        #display mouse position relative to the game map
-        rel_mouse_pos = [pygame.mouse.get_pos()[0] - gameMap.rect.x, pygame.mouse.get_pos()[1] - gameMap.rect.y]
-        pos_pane = font.render(rel_mouse_pos.__str__(), False, colordefs.WHITE, colordefs.BLACK)
-        screen.blit(pos_pane, (0, 0))
-
-        buttonGroup.draw(screen)
-
-        if controls.mouse_clicked(0):
-            selection = controls.get_selection(gameMap)
-            for entity in selection:
-                gameMap.eraseEntity(entity)
-
-        if pygame.mouse.get_pressed()[0]:
-            controls.update_selection_box(screen)
-
-        pygame.display.flip()
-    
 
     #event loop:
     while(running):
@@ -108,7 +92,28 @@ def main():
                     controls.select_box_start[1] -= controls.scrollspeed
         ####
 
-        draw_screen()
+        screen.fill((0,0,0))
+
+        screen.blit(gameMap.image, gameMap.rect.topleft)
+
+        #display mouse position relative to the game map
+        rel_mouse_pos = [pygame.mouse.get_pos()[0] - gameMap.rect.x, pygame.mouse.get_pos()[1] - gameMap.rect.y]
+        pos_pane = font.render(rel_mouse_pos.__str__(), False, colordefs.WHITE, colordefs.BLACK)
+        screen.blit(pos_pane, (0, 0))
+
+        if not controls.locked:
+            buttonGroup.draw(screen)
+
+        if controls.mouse_clicked(0):
+            selection = controls.get_selection(gameMap)
+            for entity in selection:
+                gameMap.eraseEntity(entity)
+                entities.remove_entity(entity)
+
+        if pygame.mouse.get_pressed()[0]:
+            controls.update_selection_box(screen)
+
+        pygame.display.flip()
 
         #mouse events need to be processed before this copy:
         controls.last_frame_mouse = pygame.mouse.get_pressed()

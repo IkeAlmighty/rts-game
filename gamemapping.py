@@ -1,10 +1,3 @@
-#NOTES ON ENTITY VALUES IN THE VAL MAP:
-# a value on the game value map follows: 0.abcdefg
-# 'a' signifies the landtype. 1 = water, 2 = grassland, 3 = mountains
-# 'b' signifies what general entity type is on the tile. 0 = None, 1 = building, 2 = unit
-# 'c' signifies the owner of any object on the tile. 
-# 'defg' signify the index number of the object in the entities.all_entities list.
-
 import pygame, math, noise, colordefs, random, entities
 from pygame.sprite import Sprite
 from pygame import Rect
@@ -102,13 +95,11 @@ class GameMap(pygame.sprite.Sprite):
 
                 if value > 0.4 and value < 0.7 and within(self.valMap[x*vmapHeight + y], grassland) and random.randint(0, 10000) > 9996: 
                     entity = Entity("TREE", (x*squ_width, y*squ_width), random.randint(10, 50))
-                    entity_code = entities.add_entity(entity) #this works janky 
-                    self.valMap[x*vmapHeight + y] += entity_code
+                    entities.add_entity(entity) #this works janky 
                     self.drawEntity(entity)
                 elif value >= 0.7 and within(self.valMap[x*vmapHeight + y], grassland) and random.randint(0, 10000) > 9990: 
                     entity = Entity("TREE", (x*squ_width, y*squ_width), random.randint(20, 50))
-                    entity_code = entities.add_entity(entity) #this works janky 
-                    self.valMap[x*vmapHeight + y] += entity_code
+                    entities.add_entity(entity) #this works janky 
                     self.drawEntity(entity)
 
 
@@ -121,9 +112,6 @@ class GameMap(pygame.sprite.Sprite):
 
         #erase all entities within the area:
         self.image.blit(subsurface, (entity.rect.x, entity.rect.y))
-
-        #remove the entity from the entity list:
-        entities.remove_entity(entity)
 
         #re-blit all entities on the subsurface except the one to be erased:
         for e in entities.all_entities:
