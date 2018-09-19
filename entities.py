@@ -28,7 +28,8 @@ def add_entity(entity):
     return valMapNum
 
 def remove_entity(entity):
-    all_entities.remove(entity)
+    if entity in all_entities:
+        all_entities.remove(entity)
 
 def draw_all(gamemap):
     for e in all_entities:
@@ -36,14 +37,14 @@ def draw_all(gamemap):
 
 
 
-def get_entity_type_image(entity_type, owner = None):
+def get_entity_type_image(entity_type, owner):
     
     image = preloading.default
 
     if entity_type == "TREE":
         image = preloading.tree_image
     elif entity_type == "UNIT":
-        if owner is None:
+        if owner == 0:
             image = preloading.default_unit
 
     return image
@@ -54,7 +55,7 @@ class Entity(pygame.sprite.Sprite):
     #the graphical center when the entity is created.
     def __init__(self, entity_type, location, value = 0, structure_type = 0, owner = 0):
         super().__init__()
-        self.image = get_entity_type_image(entity_type)
+        self.image = get_entity_type_image(entity_type, owner)
         self.value = value
         self.owner = owner
 
@@ -72,6 +73,15 @@ class Entity(pygame.sprite.Sprite):
 
     def get_structure_type(self):
         return self.structure_type
+
+    def set_selected(self, isSelected):
+        #TODO: implement the selection color change
+        if isSelected:
+            s = Surface((self.rect.width, self.rect.height))
+        else:
+            """"""
+            
+
 
     def __str__(self):
         return self.entity_type.__str__() + " val:(" + self.value.__str__() + ") pos:" + self.location.__str__()

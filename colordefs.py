@@ -7,3 +7,5 @@ MOUNTAIN_HIGH = (214, 207, 194)
 RED = (255, 0, 0)
 WHITE = (255, 255, 255)
 BLACK = (0, 0, 0)
+
+GREY_BLUE = (66, 78, 96)
