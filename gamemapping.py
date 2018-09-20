@@ -114,8 +114,21 @@ class GameMap(pygame.sprite.Sprite):
         self.image.blit(entity.image, (entity.rect.x, entity.rect.y))
 
     def eraseEntity(self, entity):
+
+        def fit_to_map(dimensions):
+            if dimensions[0] < 0: dimensions[0] = 0
+            if dimensions[1] < 0: dimensions[1] = 0
+            if dimensions[0] >= self.width: dimensions[0] = self.width - 1
+            if dimensions[1] >= self.height: dimensions[1] = self.height - 1
+            if dimensions[0] + dimensions[2] >= self.width: dimensions[2] = self.width - 1 - dimensions[0]
+            if dimensions[1] + dimensions[3] >= self.height: dimensions[3] = self.height - 1 - dimensions[1]
+        
+        dimensions = [entity.rect.x, entity.rect.y, entity.rect.width, entity.rect.height]
+        fit_to_map(dimensions)
+        Rect(entity.rect.x, entity.rect.y, entity.rect.width, entity.rect.height)
+
         #get a subsurface from the baseImage in the area of the entity to be erased:
-        subsurface = self.baseImage.subsurface(Rect(entity.rect.x, entity.rect.y, entity.rect.width, entity.rect.height)).copy()
+        subsurface = self.baseImage.subsurface(Rect(dimensions[0], dimensions[1], dimensions[2], dimensions[3])).copy()
 
         #erase all entities within the area:
         self.image.blit(subsurface, (entity.rect.x, entity.rect.y))

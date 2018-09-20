@@ -39,7 +39,7 @@ class Entity(pygame.sprite.Sprite):
         self.value = value
         self.owner = owner
 
-        self.location = (location[0] - self.image.get_rect().width/2, location[1] - self.image.get_rect().height/2)
+        self.location = [location[0] - self.image.get_rect().width/2, location[1] - self.image.get_rect().height/2]
 
         self.entity_type = entity_type
 
@@ -60,8 +60,6 @@ class Entity(pygame.sprite.Sprite):
             s = Surface((self.rect.width, self.rect.height))
         else:
             """"""
-            
-
 
     def __str__(self):
         return self.entity_type.__str__() + " val:(" + self.value.__str__() + ") pos:" + self.location.__str__()
