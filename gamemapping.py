@@ -3,7 +3,7 @@ from pygame.sprite import Sprite
 from pygame import Rect
 from entities import Entity
 
-squ_width = 4
+squ_width = 3
 
 #set thresholds for terrain:
 water = (0.1, 0.1999)

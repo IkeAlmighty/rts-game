@@ -124,9 +124,9 @@ def update_selection_box(screen):
 
 class Button(pygame.sprite.Sprite):
 
-    #colors should be a list of two colors, the first color is the background
-    #color and the second color is the foreground (text) color.
-    def __init__(self, colors, deminsions, ident = None, text = None, image = None, colorfill = colordefs.GREY_BLUE):
+    #colors should be a list of two colors, the first color is the foreground
+    #color and the second color is the background (text) color.
+    def __init__(self, deminsions, ident = None, text = None, image = None, colors = (colordefs.WHITE, colordefs.GREY_BLUE)):
         super().__init__()
 
         self.image = None
@@ -138,8 +138,8 @@ class Button(pygame.sprite.Sprite):
         if text is not None:
             font = pygame.font.SysFont('', 16)
             self.image = pygame.Surface((deminsions[2], deminsions[3]))
-            self.image.fill(colorfill)
-            buttonpane = font.render(text, False, colordefs.WHITE)
+            self.image.fill(colors[1])
+            buttonpane = font.render(text, False, colors[0])
             self.image.blit(buttonpane, (5, self.image.get_rect()[3]/2 - buttonpane.get_rect()[3]/2))
         if image is not None:
             print("button with image")

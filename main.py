@@ -28,8 +28,8 @@ def main():
         unit_text = "UNIT " + i.__str__()
         building_text = "BUILD " + i.__str__()
 
-        unit_button = Button(None, (bttn_pos[0], bttn_pos[1], 48, 48), text=unit_text)
-        building_button = Button(None, (bttn_pos[0], bttn_pos[1], 48, 48), text=building_text, colorfill=colordefs.BROWN)
+        unit_button = Button((bttn_pos[0], bttn_pos[1], 48, 48), text=unit_text)
+        building_button = Button((bttn_pos[0], bttn_pos[1], 48, 48), text=building_text, colors = (colordefs.WHITE, colordefs.BROWN))
 
         bttn_pos[0] -= 50
         unit_slot_bttns.add(unit_button)
