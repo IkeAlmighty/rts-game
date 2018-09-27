@@ -1,5 +1,6 @@
 import pygame, os, sys
 import broadcasting, network, gamemapping, colordefs, preloading, entities
+from pygame import Rect
 from gamemapping import GameMap
 from pygame.sprite import Group
 from entities import Entity
@@ -43,6 +44,7 @@ def main():
     ###
 
     unit = Entity("UNIT", (100, 100))
+    #unit.set_selected(True)
     entities.add_entity(unit)
     gamemap.drawEntity(unit)
 
@@ -147,8 +149,21 @@ def main():
         if controls.mouse_clicked(0):
             selection = controls.get_selection(gamemap)
             for entity in selection:
+                entity.set_selected(True)
                 gamemap.eraseEntity(entity)
-                entities.remove_entity(entity)
+                gamemap.drawEntity(entity)
+            for entity in entities.all_entities:
+                if entity not in selection and entity.is_selected:
+                    entity.set_selected(False)
+                    gamemap.eraseEntity(entity)
+                    gamemap.drawEntity(entity)
+
+        for button in slot_buttons:
+            if button.rect.colliderect(Rect(pygame.mouse.get_pos()[0] - 1, pygame.mouse.get_pos()[1] - 1, 3, 3)):
+                button.set_selected(True)
+            else:
+                button.set_selected(False)
+                    
 
         #update the selection box graphic.
         if pygame.mouse.get_pressed()[0]:

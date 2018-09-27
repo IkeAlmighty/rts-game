@@ -1,5 +1,6 @@
 import pygame, preloading
 from pygame.sprite import Sprite
+from pygame import Surface
 
 all_entities = []
 
@@ -35,7 +36,9 @@ class Entity(pygame.sprite.Sprite):
     #the graphical center when the entity is created.
     def __init__(self, entity_type, location, value = 0, structure_type = 0, owner = 0):
         super().__init__()
-        self.image = get_entity_type_image(entity_type, owner)
+        self.image_not_selected = get_entity_type_image(entity_type, owner)
+        self.image = self.image_not_selected
+
         self.value = value
         self.owner = owner
 
@@ -47,6 +50,12 @@ class Entity(pygame.sprite.Sprite):
 
         self.rect = self.image.get_rect()
         self.rect = self.rect.move(self.location[0], self.location[1])
+
+        self.image_selected = Surface((self.rect.width, self.rect.height))
+        self.image_selected.fill((57, 57, 69))
+        self.image_selected.blit(self.image_not_selected, (0, 0))
+
+        self.is_selected = False
     
     def get_owner(self):
         return self.owner
@@ -55,11 +64,11 @@ class Entity(pygame.sprite.Sprite):
         return self.structure_type
 
     def set_selected(self, isSelected):
-        #TODO: implement the selection color change
+        self.is_selected = isSelected
         if isSelected:
-            s = Surface((self.rect.width, self.rect.height))
+            self.image = self.image_selected
         else:
-            """"""
+            self.image  =  self.image_not_selected
 
     def __str__(self):
         return self.entity_type.__str__() + " val:(" + self.value.__str__() + ") pos:" + self.location.__str__()

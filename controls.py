@@ -129,6 +129,8 @@ class Button(pygame.sprite.Sprite):
     def __init__(self, deminsions, ident = None, text = None, image = None, colors = (colordefs.WHITE, colordefs.GREY_BLUE)):
         super().__init__()
 
+        self.deminsions = deminsions
+
         self.image = None
         if ident == None and text != None:
             self.id = text
@@ -137,16 +139,33 @@ class Button(pygame.sprite.Sprite):
 
         if text is not None:
             font = pygame.font.SysFont('', 16)
-            self.image = pygame.Surface((deminsions[2], deminsions[3]))
-            self.image.fill(colors[1])
+            self.image_not_selected = pygame.Surface((deminsions[2], deminsions[3]))
+            self.image_not_selected.fill(colors[1])
             buttonpane = font.render(text, False, colors[0])
-            self.image.blit(buttonpane, (5, self.image.get_rect()[3]/2 - buttonpane.get_rect()[3]/2))
+            self.image_not_selected.blit(buttonpane, (5, self.image_not_selected.get_rect()[3]/2 - buttonpane.get_rect()[3]/2))
         if image is not None:
             print("button with image")
-            self.image = image
+            self.image_not_selected = image
 
+        self.image = self.image_not_selected
         self.rect = self.image.get_rect()
         self.rect = self.rect.move(deminsions[0], deminsions[1])
 
+        self.image_selected = pygame.Surface((deminsions[2], deminsions[3]))
+        salpha = pygame.Surface((deminsions[2], deminsions[3]))
+        salpha.fill(colordefs.WHITE)
+        salpha.set_alpha(90)
+        self.image_selected.blit(self.image_not_selected, (0, 0))
+        self.image_selected.blit(salpha, (0, 0))
+
     def get_id(self):
         return self.id
+
+    def set_selected(self, is_selected):
+        self.is_selected = is_selected
+
+        if is_selected:
+            self.image = self.image_selected
+        else:
+            self.image = self.image_not_selected
+
