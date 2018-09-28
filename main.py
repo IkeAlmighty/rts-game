@@ -1,4 +1,4 @@
-import pygame, os, sys
+import pygame, os, sys, random
 import broadcasting, network, gamemapping, colordefs, preloading, entities
 from pygame import Rect
 from gamemapping import GameMap
@@ -43,10 +43,17 @@ def main():
     print("generated ", mapSize[0]*mapSize[1], " block map in ", pygame.time.get_ticks() - startTime, " ms")
     ###
 
+    # unit_pos = (random.randint(0, gamemap.width), random.randint(0, gamemap.height))
+    # while not gamemap.is_traversable(unit_pos):
+    #     unit_pos = (random.randint(0, gamemap.width), random.randint(0, gamemap.height))
     unit = Entity("UNIT", (100, 100))
-    #unit.set_selected(True)
     entities.add_entity(unit)
     gamemap.drawEntity(unit)
+    # print(unit.create_path(gamemap, (400, 200)))
+
+    relic = Entity("RELIC", (200, 100))
+    entities.add_entity(relic)
+    gamemap.drawEntity(relic)
 
     clock = pygame.time.Clock()
     running = True

@@ -109,6 +109,10 @@ class GameMap(pygame.sprite.Sprite):
                     entities.add_entity(entity) #this works janky 
                     self.drawEntity(entity)
 
+    def is_traversable(self, pos):
+        val = self.valMap[int(pos[0]/squ_width)*self.height + int(pos[1]/squ_width)]
+        return within(val, grassland)
+
     def drawEntity(self, entity):
         self.image.blit(entity.image, (entity.rect.x, entity.rect.y))
 
