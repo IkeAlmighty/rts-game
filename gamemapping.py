@@ -109,7 +109,6 @@ class GameMap(pygame.sprite.Sprite):
                     entities.add_entity(entity) #this works janky 
                     self.drawEntity(entity)
 
-
     def drawEntity(self, entity):
         self.image.blit(entity.image, (entity.rect.x, entity.rect.y))
 
@@ -135,6 +134,6 @@ class GameMap(pygame.sprite.Sprite):
 
         #re-blit all entities on the subsurface except the one to be erased:
         for e in entities.all_entities:
-            if e.rect.colliderect(subsurface.get_rect()):
+            if e.rect.colliderect(entity.rect):
                 self.drawEntity(e)
 

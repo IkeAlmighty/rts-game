@@ -120,6 +120,12 @@ def main():
         ####
         #END OF MAP SCROLLING LOGIC
 
+        for button in slot_buttons:
+            if button.rect.colliderect(Rect(pygame.mouse.get_pos()[0] - 1, pygame.mouse.get_pos()[1] - 1, 3, 3)):
+                button.set_selected(True)
+            else:
+                button.set_selected(False)
+
         #clear screen so that the UI and gamemap can be redrawn.
         screen.fill((0,0,0))
 
@@ -144,8 +150,7 @@ def main():
         pos_pane = font.render(rel_mouse_pos.__str__(), False, colordefs.WHITE, colordefs.BLACK)
         screen.blit(pos_pane, (0, 0))
 
-        #erase and remove all entities that have been selected, 
-        #if anything has been selected.
+        #do things with selected entities.
         if controls.mouse_clicked(0):
             selection = controls.get_selection(gamemap)
             for entity in selection:
@@ -157,12 +162,6 @@ def main():
                     entity.set_selected(False)
                     gamemap.eraseEntity(entity)
                     gamemap.drawEntity(entity)
-
-        for button in slot_buttons:
-            if button.rect.colliderect(Rect(pygame.mouse.get_pos()[0] - 1, pygame.mouse.get_pos()[1] - 1, 3, 3)):
-                button.set_selected(True)
-            else:
-                button.set_selected(False)
                     
 
         #update the selection box graphic.
