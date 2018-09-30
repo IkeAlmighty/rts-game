@@ -3,7 +3,7 @@ from pygame.sprite import Sprite
 from pygame import Rect
 from entities import Entity
 
-squ_width = 4
+squ_width = 3
 
 #set thresholds for terrain:
 water = (0.0, 0.2)
@@ -102,19 +102,37 @@ class GameMap(pygame.sprite.Sprite):
                     entities.add_entity(entity) #this works janky 
                     self.drawEntity(entity)
 
+    def is_traversable(self, pos):
+        print(int(pos[0]/squ_width*self.height/squ_width) + int(pos[1]/squ_width))
+        val = self.valMap[int(pos[0]/squ_width*self.height/squ_width) + int(pos[1]/squ_width)]
+        print(val)
+        return within(val, grassland)
 
     def drawEntity(self, entity):
         self.image.blit(entity.image, (entity.rect.x, entity.rect.y))
 
     def eraseEntity(self, entity):
+
+        def fit_to_map(dimensions):
+            if dimensions[0] < 0: dimensions[0] = 0
+            if dimensions[1] < 0: dimensions[1] = 0
+            if dimensions[0] >= self.width: dimensions[0] = self.width - 1
+            if dimensions[1] >= self.height: dimensions[1] = self.height - 1
+            if dimensions[0] + dimensions[2] >= self.width: dimensions[2] = self.width - 1 - dimensions[0]
+            if dimensions[1] + dimensions[3] >= self.height: dimensions[3] = self.height - 1 - dimensions[1]
+        
+        dimensions = [entity.rect.x, entity.rect.y, entity.rect.width, entity.rect.height]
+        fit_to_map(dimensions)
+        Rect(entity.rect.x, entity.rect.y, entity.rect.width, entity.rect.height)
+
         #get a subsurface from the baseImage in the area of the entity to be erased:
-        subsurface = self.baseImage.subsurface(Rect(entity.rect.x, entity.rect.y, entity.rect.width, entity.rect.height)).copy()
+        subsurface = self.baseImage.subsurface(Rect(dimensions[0], dimensions[1], dimensions[2], dimensions[3])).copy()
 
         #erase all entities within the area:
         self.image.blit(subsurface, (entity.rect.x, entity.rect.y))
 
         #re-blit all entities on the subsurface except the one to be erased:
         for e in entities.all_entities:
-            if e.rect.colliderect(subsurface.get_rect()):
+            if e.rect.colliderect(entity.rect):
                 self.drawEntity(e)
 
