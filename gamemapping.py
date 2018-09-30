@@ -110,7 +110,9 @@ class GameMap(pygame.sprite.Sprite):
                     self.drawEntity(entity)
 
     def is_traversable(self, pos):
-        val = self.valMap[int(pos[0]/squ_width)*self.height + int(pos[1]/squ_width)]
+        print(int(pos[0]/squ_width*self.height/squ_width) + int(pos[1]/squ_width))
+        val = self.valMap[int(pos[0]/squ_width*self.height/squ_width) + int(pos[1]/squ_width)]
+        print(val)
         return within(val, grassland)
 
     def drawEntity(self, entity):

@@ -37,19 +37,19 @@ def main():
         building_slot_bttns.add(building_button)
 
     ###
-    mapSize = (1000, 1000) #mapsize * squ_width is the pixel size (squ_width is defined in the mapping module)
+    mapSize = (100, 100) #mapsize * squ_width is the pixel size (squ_width is defined in the mapping module)
     startTime = pygame.time.get_ticks()
     gamemap = GameMap(mapSize)
     print("generated ", mapSize[0]*mapSize[1], " block map in ", pygame.time.get_ticks() - startTime, " ms")
     ###
 
-    # unit_pos = (random.randint(0, gamemap.width), random.randint(0, gamemap.height))
-    # while not gamemap.is_traversable(unit_pos):
-    #     unit_pos = (random.randint(0, gamemap.width), random.randint(0, gamemap.height))
-    unit = Entity("UNIT", (100, 100))
+    unit_pos = (random.randint(0, gamemap.width - 1), random.randint(0, gamemap.height - 1))
+    while not gamemap.is_traversable(unit_pos):
+        unit_pos = (random.randint(0, gamemap.width - 1), random.randint(0, gamemap.height - 1))
+    unit = Entity("UNIT", unit_pos)
     entities.add_entity(unit)
     gamemap.drawEntity(unit)
-    # print(unit.create_path(gamemap, (400, 200)))
+    print(unit.create_path(gamemap, (400, 200)))
 
     relic = Entity("RELIC", (200, 100))
     entities.add_entity(relic)
