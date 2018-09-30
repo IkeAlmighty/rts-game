@@ -1,9 +1,11 @@
 import pygame, preloading, math
 from pygame.sprite import Sprite
-from pygame import Surface
+from pygame import Surface, Rect
 import gamemapping
 
 all_entities = []
+
+outdated_entities = []
 
 def add_entity(entity):
     if entity not in all_entities:
@@ -17,7 +19,13 @@ def draw_all(gamemap):
     for e in all_entities:
         gamemap.drawEntity(e)
 
+def flag_for_update(entity):
+    if entity not in outdated_entities:
+        outdated_entities.append(entity)
 
+def update():
+    for entity in outdated_entities:
+        entity.update()
 
 def get_entity_type_image(entity_type, owner):
     
@@ -45,7 +53,9 @@ class Entity(pygame.sprite.Sprite):
         self.value = value
         self.owner = owner
 
-        self.location = [location[0] - self.image.get_rect().width/2, location[1] - self.image.get_rect().height/2]
+        self.location = [int(location[0] - self.image.get_rect().width/2), int(location[1] - self.image.get_rect().height/2)]
+
+        self.path = []
 
         self.entity_type = entity_type
 
@@ -71,39 +81,81 @@ class Entity(pygame.sprite.Sprite):
         if isSelected:
             self.image = self.image_selected
         else:
-            self.image  =  self.image_not_selected
+            self.image = self.image_not_selected
 
     #returns a path to the location in the form 
     #of an array of points.
-    # TODO: make this work
     def create_path(self, gamemap, dest):
         path = []
 
-        pos = [int(self.location[0]), int(self.location[1])]
-        while pos != dest:
-            possible_pos = []
-            for x in range(int(pos[0] - 1), int(pos[0] + 1)):
-                for y in range(int(pos[1] - 1), int(pos[1] + 1)):
-                    print( gamemap.is_traversable((x, y)) and [x, y] != pos)
-                    if gamemap.is_traversable((x, y)) and [x, y] != pos:
-                        possible_pos.append((x, y))
-            
-            if len(possible_pos) == 0:
-                print("0 possible points")
-                return path
+        #create the starting path point:
+        path_point = (self.location[0], self.location[1])
+        while(dest not in path):
+            #Create an array rerpresenting the 8 
+            #squares adjacent to the entity. Weight 
+            #each square based on how close it is to the 
+            #destination, zeroing out any that are not
+            #traversable.
+            adj = [0.0 for i in range(8)]
+            def index_to_pos(index, center_pos):
+                if index == 0: return (center_pos[0] - 1, center_pos[1] - 1)
+                elif index == 1: return (center_pos[0], center_pos[1] - 1)
+                elif index == 2: return (center_pos[0] + 1, center_pos[1] - 1)
+                elif index == 3: return (center_pos[0] - 1, center_pos[1])
+                elif index == 4: return (center_pos[0] + 1, center_pos[1])
+                elif index == 5: return (center_pos[0] - 1, center_pos[1] + 1)
+                elif index == 6: return (center_pos[0], center_pos[1] + 1)
+                else: return (center_pos[0] + 1, center_pos[1] + 1)
 
-            closest_pos = possible_pos[0]
-            closest_dist = math.sqrt((dest[0] - possible_pos[0][0])**2 + (dest[1] - possible_pos[0][1])**2)
-            for p in possible_pos:
-                distance = math.sqrt((dest[0] - p[0])**2 + (dest[1] - p[1])**2)
-                if distance < closest_dist:
-                    closest_pos = p
-                    closest_dist = distance
+            for pos_i in range(8):
+                x = index_to_pos(pos_i, path_point)[0]
+                y = index_to_pos(pos_i, path_point)[1]
+                #trav is 0.0 when is_traversable returns False, 1.0 if True
+                trav = float(self.can_traverse(gamemap, index_to_pos(adj[pos_i], path_point)))
+                distance = math.sqrt((dest[0] - x)**2 + (dest[1] - y)**2) + 0.0000001
+                adj[pos_i] += trav*(1.0/distance)
+
+            #if the highest weighted position has value of 0.0, then break the loop:
+            if max(adj) == 0.0:
+                break
+
+            #find the highest weighted position's (which should be the closest) index 
+            highest_value_index = adj.index(max(adj))
+            #add the position to the path.
+            path.append(index_to_pos(highest_value_index, path_point))
             
-            path.append(closest_pos)
-            pos = closest_pos
+            #set the path_point:
+            path_point = path[len(path) - 1]
+
+        #repeat until there are no traversable squares or
+        #until path includes the destination.
 
         return path
+
+    def set_dest(self, gamemap, dest):
+        self.path = self.create_path(gamemap, dest)
+        print(self.path)
+    
+    def update(self):
+        if len(self.path) > 0:
+            pos = self.path.pop(0)
+            self.move_to(pos)
+        else:
+            outdated_entities.remove(self)
+
+    def can_traverse(self, gamemap, pos): 
+
+        trav = int(gamemapping.within(gamemap.val_at(pos), gamemapping.grassland))
+        trav *= int(gamemapping.within(gamemap.val_at((pos[0] + self.rect.width, pos[1])), gamemapping.grassland))
+        trav *= int(gamemapping.within(gamemap.val_at((pos[0] + self.rect.width, pos[1] + self.rect.height)), gamemapping.grassland))
+        trav *= int(gamemapping.within(gamemap.val_at((pos[0], pos[1] + self.rect.height)), gamemapping.grassland))
+
+        return bool(trav)
+
+
+    def move_to(self, position):
+        self.rect = Rect(position[0], position[1], self.rect.width, self.rect.height)
+        self.location = position
 
     def __str__(self):
         return self.entity_type.__str__() + " val:(" + self.value.__str__() + ") pos:" + self.location.__str__()

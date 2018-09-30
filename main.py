@@ -37,23 +37,25 @@ def main():
         building_slot_bttns.add(building_button)
 
     ###
-    mapSize = (100, 100) #mapsize * squ_width is the pixel size (squ_width is defined in the mapping module)
+    mapSize = (1000, 1000) #mapsize * squ_width is the pixel size (squ_width is defined in the mapping module)
     startTime = pygame.time.get_ticks()
     gamemap = GameMap(mapSize)
     print("generated ", mapSize[0]*mapSize[1], " block map in ", pygame.time.get_ticks() - startTime, " ms")
     ###
 
-    unit_pos = (random.randint(0, gamemap.width - 1), random.randint(0, gamemap.height - 1))
-    while not gamemap.is_traversable(unit_pos):
-        unit_pos = (random.randint(0, gamemap.width - 1), random.randint(0, gamemap.height - 1))
-    unit = Entity("UNIT", unit_pos)
+    unit = Entity("UNIT", (300, 300))
+    while not unit.can_traverse(gamemap, unit.location):
+        if unit.location[0] > gamemap.width: unit.move_to((0, unit.location[1] + 1))
+        else: unit.move_to((unit.location[0] + 1, unit.location[1]))
+    print("unit location: ", unit.location, "traversable = ", unit.can_traverse(gamemap, unit.location))
     entities.add_entity(unit)
     gamemap.drawEntity(unit)
-    print(unit.create_path(gamemap, (400, 200)))
 
     relic = Entity("RELIC", (200, 100))
     entities.add_entity(relic)
     gamemap.drawEntity(relic)
+
+    selection = []
 
     clock = pygame.time.Clock()
     running = True
@@ -133,6 +135,14 @@ def main():
             else:
                 button.set_selected(False)
 
+        #attempt to update all outdated entities.
+        for e in entities.outdated_entities:
+            gamemap.eraseEntity(e)
+        entities.update()
+        for e in entities.outdated_entities:
+            gamemap.drawEntity(e)
+        
+
         #clear screen so that the UI and gamemap can be redrawn.
         screen.fill((0,0,0))
 
@@ -157,6 +167,10 @@ def main():
         pos_pane = font.render(rel_mouse_pos.__str__(), False, colordefs.WHITE, colordefs.BLACK)
         screen.blit(pos_pane, (0, 0))
 
+        #display whether or not the position is traversable by game entities.
+        trav_pane = font.render(unit.can_traverse(gamemap, rel_mouse_pos).__str__(), False, colordefs.WHITE, colordefs.BLACK)
+        screen.blit(trav_pane, (75, 0))
+
         #do things with selected entities.
         if controls.mouse_clicked(0):
             selection = controls.get_selection(gamemap)
@@ -169,7 +183,12 @@ def main():
                     entity.set_selected(False)
                     gamemap.eraseEntity(entity)
                     gamemap.drawEntity(entity)
-                    
+
+        # set destination for all selected entities.   
+        if controls.mouse_clicked(2):
+            for entity in selection:
+                entity.set_dest(gamemap, (50, 50))
+                entities.flag_for_update(entity)
 
         #update the selection box graphic.
         if pygame.mouse.get_pressed()[0]:
