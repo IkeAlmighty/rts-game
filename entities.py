@@ -38,6 +38,8 @@ def get_entity_type_image(entity_type, owner):
             image = preloading.default_unit
     elif entity_type == "RELIC":
         image = preloading.relic_image
+    elif entity_type == "DOT":
+        image = preloading.dot_image
 
     return image
 
@@ -133,6 +135,7 @@ class Entity(pygame.sprite.Sprite):
         return path
 
     def set_dest(self, gamemap, dest):
+        dest = (dest[0] - int(self.rect.width/2), dest[1] - int(self.rect.height/2))
         self.path = self.create_path(gamemap, dest)
         print(self.path)
     
@@ -140,17 +143,10 @@ class Entity(pygame.sprite.Sprite):
         if len(self.path) > 0:
             pos = self.path.pop(0)
             self.move_to(pos)
-        else:
-            outdated_entities.remove(self)
 
     def can_traverse(self, gamemap, pos): 
-
-        trav = int(gamemapping.within(gamemap.val_at(pos), gamemapping.grassland))
-        trav *= int(gamemapping.within(gamemap.val_at((pos[0] + self.rect.width, pos[1])), gamemapping.grassland))
-        trav *= int(gamemapping.within(gamemap.val_at((pos[0] + self.rect.width, pos[1] + self.rect.height)), gamemapping.grassland))
-        trav *= int(gamemapping.within(gamemap.val_at((pos[0], pos[1] + self.rect.height)), gamemapping.grassland))
-
-        return bool(trav)
+        center = (int(pos[0] + self.rect.width/2), int(pos[1] + self.rect.height/2))
+        return int(gamemapping.within(gamemap.val_at(center), gamemapping.grassland))
 
 
     def move_to(self, position):

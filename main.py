@@ -134,13 +134,6 @@ def main():
                 button.set_selected(True)
             else:
                 button.set_selected(False)
-
-        #attempt to update all outdated entities.
-        for e in entities.outdated_entities:
-            gamemap.eraseEntity(e)
-        entities.update()
-        for e in entities.outdated_entities:
-            gamemap.drawEntity(e)
         
 
         #clear screen so that the UI and gamemap can be redrawn.
@@ -184,10 +177,19 @@ def main():
                     gamemap.eraseEntity(entity)
                     gamemap.drawEntity(entity)
 
+        #attempt to update all outdated entities.
+        for e in entities.outdated_entities:
+            gamemap.eraseEntity(e)
+        entities.update()
+        for e in entities.outdated_entities:
+            gamemap.drawEntity(e)
+            if len(e.path) == 0:
+                entities.outdated_entities.remove(e)
+
         # set destination for all selected entities.   
         if controls.mouse_clicked(2):
             for entity in selection:
-                entity.set_dest(gamemap, (50, 50))
+                entity.set_dest(gamemap, (rel_mouse_pos[0], rel_mouse_pos[1]))
                 entities.flag_for_update(entity)
 
         #update the selection box graphic.
