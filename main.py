@@ -44,10 +44,10 @@ def main():
     ###
 
     unit = Entity("UNIT", (300, 300))
-    while not unit.can_traverse(gamemap, unit.location):
+    while not unit.can_traverse(unit.location, gamemap):
         if unit.location[0] > gamemap.width: unit.move_to((0, unit.location[1] + 1))
         else: unit.move_to((unit.location[0] + 1, unit.location[1]))
-    print("unit location: ", unit.location, "traversable = ", unit.can_traverse(gamemap, unit.location))
+    print("unit location: ", unit.location, "traversable = ", unit.can_traverse(unit.location, gamemap))
     entities.add_entity(unit)
     gamemap.drawEntity(unit)
 
@@ -161,7 +161,7 @@ def main():
         screen.blit(pos_pane, (0, 0))
 
         #display whether or not the position is traversable by game entities.
-        trav_pane = font.render(unit.can_traverse(gamemap, rel_mouse_pos).__str__(), False, colordefs.WHITE, colordefs.BLACK)
+        trav_pane = font.render(unit.can_traverse(rel_mouse_pos, gamemap).__str__(), False, colordefs.WHITE, colordefs.BLACK)
         screen.blit(trav_pane, (75, 0))
 
         #do things with selected entities.
