@@ -47,7 +47,7 @@ class Entity(pygame.sprite.Sprite):
 
     #the entity location should be passed as the topleft of the entity, but is corrected to be
     #the graphical center when the entity is created.
-    def __init__(self, entity_type, location, value = 0, structure_type = 0, owner = 0):
+    def __init__(self, entity_type, location, speed = 0, value = 0, owner = 0):
         super().__init__()
         self.image_not_selected = get_entity_type_image(entity_type, owner)
         self.image = self.image_not_selected
@@ -58,10 +58,9 @@ class Entity(pygame.sprite.Sprite):
         self.location = [int(location[0] - self.image.get_rect().width/2), int(location[1] - self.image.get_rect().height/2)]
 
         self.path = []
+        self.speed = speed
 
         self.entity_type = entity_type
-
-        self.structure_type = structure_type #TODO rename this
 
         self.rect = self.image.get_rect()
         self.rect = self.rect.move(self.location[0], self.location[1])
@@ -74,9 +73,6 @@ class Entity(pygame.sprite.Sprite):
     
     def get_owner(self):
         return self.owner
-
-    def get_structure_type(self):
-        return self.structure_type
 
     def set_selected(self, isSelected):
         self.is_selected = isSelected
@@ -141,7 +137,10 @@ class Entity(pygame.sprite.Sprite):
     
     def update(self):
         if len(self.path) > 0:
-            pos = self.path.pop(0)
+            pos = self.location
+            for i in range(self.speed):
+                if len(self.path) > 0:
+                    pos = self.path.pop(0)
             self.move_to(pos)
 
     def can_traverse(self, gamemap, pos): 
