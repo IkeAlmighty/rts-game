@@ -150,7 +150,6 @@ class Entity(pygame.sprite.Sprite):
     
     def update(self):
         if len(self.path) > 0:
-            print("speed: ", self.speed)
             for i in range(0, self.speed):
                 if len(self.path) > 0:
                     pos = self.path.pop(0)
