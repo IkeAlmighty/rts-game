@@ -16,7 +16,7 @@ def main():
     import controls
     from controls import Button
 
-    screen = pygame.display.set_mode((scr_width, scr_height))
+    screen = pygame.display.set_mode((scr_width, scr_height), pygame.FULLSCREEN)
 
     font = pygame.font.SysFont('', 16)
 
