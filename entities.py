@@ -119,7 +119,18 @@ class Entity(pygame.sprite.Sprite):
                 waypoint_path.append(p)
             return waypoint_path
 
-        path = []
+        def get_combined_paths(paths):
+            combined_path = []
+            for path in paths:
+                for point in path:
+                    combined_path.append(point)
+            return combined_path
+        
+        def get_unit_perp(vector):
+            theta = math.atan(vector[1]/vector[0])
+            theta += 90*math.pi/180
+            return (math.cos(theta), math.sin(theta))
+
         start_point = (self.location[0], self.location[1])
 
         path = get_simple_path(start_point, end_point)
@@ -137,8 +148,8 @@ class Entity(pygame.sprite.Sprite):
                 dx = path[end_index][0] - path[start_index][0]
                 dy = path[end_index][1] - path[start_index][1]
                 magnitude = math.sqrt(dx**2 + dy**2)
-                search_vector = (-1*dx/magnitude, dy/magnitude) #math is hard.
-
+                search_vector = (dx/magnitude, dy/magnitude)
+                search_vector = get_unit_perp(search_vector)
                 
 
         return path
