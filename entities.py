@@ -1,4 +1,4 @@
-import pygame, preloading, math
+import pygame, preloading, math, random, pygame.time
 from pygame.sprite import Sprite
 from pygame import Surface, Rect
 import gamemapping
@@ -32,7 +32,10 @@ def get_entity_type_image(entity_type, owner):
     image = preloading.default
 
     if entity_type == "TREE":
-        image = preloading.tree_image
+        if random.randint(0, 1) == 0:
+            image = preloading.tree_image
+        else: 
+            image = preloading.tree_small_image
     elif entity_type == "UNIT":
         if owner == 0:
             image = preloading.default_unit
@@ -47,7 +50,7 @@ class Entity(pygame.sprite.Sprite):
 
     #the entity location should be passed as the topleft of the entity, but is corrected to be
     #the graphical center when the entity is created.
-    def __init__(self, entity_type, location, speed = 0, value = 0, owner = 0):
+    def __init__(self, entity_type, location, value = 0, speed = 2, owner = 0):
         super().__init__()
         self.image_not_selected = get_entity_type_image(entity_type, owner)
         self.image = self.image_not_selected
@@ -59,6 +62,7 @@ class Entity(pygame.sprite.Sprite):
 
         self.path = []
         self.speed = speed
+        self.speed_tstamp = pygame.time.get_ticks()
 
         self.entity_type = entity_type
 
@@ -133,15 +137,15 @@ class Entity(pygame.sprite.Sprite):
     def set_dest(self, gamemap, dest):
         dest = (dest[0] - int(self.rect.width/2), dest[1] - int(self.rect.height/2))
         self.path = self.create_path(gamemap, dest)
-        print(self.path)
+        # print(self.path)
     
     def update(self):
         if len(self.path) > 0:
-            pos = self.location
-            for i in range(self.speed):
+            print("speed: ", self.speed)
+            for i in range(0, self.speed):
                 if len(self.path) > 0:
                     pos = self.path.pop(0)
-            self.move_to(pos)
+                    self.move_to(pos)
 
     def can_traverse(self, gamemap, pos): 
         center = (int(pos[0] + self.rect.width/2), int(pos[1] + self.rect.height/2))

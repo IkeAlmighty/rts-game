@@ -100,7 +100,7 @@ class GameMap(pygame.sprite.Sprite):
                 if value < 0.0: value = 0.0
                 if value > 1.0: value = 1.0
 
-                if value > 0.4 and value < 0.7 and within(self.valMap[x*vmapHeight + y], grassland) and random.randint(0, 10000) > 9996: 
+                if value > 0.4 and value < 0.7 and (within(self.valMap[x*vmapHeight + y], grassland) or within(self.valMap[x*vmapHeight + y], mountain_low)) and random.randint(0, 10000) > 9996: 
                     entity = Entity("TREE", (x*squ_width, y*squ_width), random.randint(10, 50))
                     entities.add_entity(entity) #this works janky 
                     self.drawEntity(entity)
