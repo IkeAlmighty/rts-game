@@ -93,7 +93,7 @@ class GameMap(pygame.sprite.Sprite):
                 if value < 0.0: value = 0.0
                 if value > 1.0: value = 1.0
 
-                if value > 0.4 and value < 0.7 and within(self.valMap[x*vmapHeight + y], grassland) and random.randint(0, 10000) > 9996: 
+                if value > 0.4 and value < 0.7 and (within(self.valMap[x*vmapHeight + y], grassland) or within(self.valMap[x*vmapHeight + y], mountain_low)) and random.randint(0, 10000) > 9996: 
                     entity = Entity("TREE", (x*squ_width, y*squ_width), random.randint(10, 50))
                     entities.add_entity(entity) #this works janky 
                     self.drawEntity(entity)
@@ -102,11 +102,20 @@ class GameMap(pygame.sprite.Sprite):
                     entities.add_entity(entity) #this works janky 
                     self.drawEntity(entity)
 
-    def is_traversable(self, pos):
-        print(int(pos[0]/squ_width*self.height/squ_width) + int(pos[1]/squ_width))
-        val = self.valMap[int(pos[0]/squ_width*self.height/squ_width) + int(pos[1]/squ_width)]
-        print(val)
-        return within(val, grassland)
+    def __is_valid_pos(self, pos):
+        x = int(pos[0] / squ_width)
+        y = int(pos[1] / squ_width)
+        return x >= 0 and x < self.width/squ_width and y >= 0 and y < self.height/squ_width
+
+    #returns the value number of a position denoted by pixels (not squares)
+    def val_at(self, pos):
+        if not self.__is_valid_pos(pos):
+            return -1.0
+
+        x = int(pos[0] / squ_width)
+        y = int(pos[1] / squ_width)
+
+        return self.valMap[x*int(self.height/squ_width) + y]
 
     def drawEntity(self, entity):
         self.image.blit(entity.image, (entity.rect.x, entity.rect.y))
@@ -123,7 +132,7 @@ class GameMap(pygame.sprite.Sprite):
         
         dimensions = [entity.rect.x, entity.rect.y, entity.rect.width, entity.rect.height]
         fit_to_map(dimensions)
-        Rect(entity.rect.x, entity.rect.y, entity.rect.width, entity.rect.height)
+        # Rect(entity.rect.x, entity.rect.y, entity.rect.width, entity.rect.height)
 
         #get a subsurface from the baseImage in the area of the entity to be erased:
         subsurface = self.baseImage.subsurface(Rect(dimensions[0], dimensions[1], dimensions[2], dimensions[3])).copy()
@@ -133,6 +142,6 @@ class GameMap(pygame.sprite.Sprite):
 
         #re-blit all entities on the subsurface except the one to be erased:
         for e in entities.all_entities:
-            if e.rect.colliderect(entity.rect):
+            if e.rect.colliderect(entity.rect) and e != entity:
                 self.drawEntity(e)
 
