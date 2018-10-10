@@ -5,6 +5,8 @@ from entities import Entity
 scr_width = 800
 scr_height = 600
 
+map_size = (300, 300)
+
 font = None
 
 gamemap = None
@@ -21,7 +23,7 @@ selection = []
 
 def init_gamemap():
     global gamemap
-    map_size = (1500, 1500) #mapsize * squ_width is the pixel size (squ_width is defined in the mapping module)
+    global map_size
     start_time = pygame.time.get_ticks()
     gamemap = gamemapping.GameMap(map_size)
     print("generated ", map_size[0]*map_size[1], " block map in ", pygame.time.get_ticks() - start_time, " ms")
@@ -165,3 +167,11 @@ def update_outdated_entities():
         gamemap.drawEntity(e)
         if len(e.path) == 0:
             entities.outdated_entities.remove(e)
+
+def draw_gamemap_value(screen):
+    global rel_mouse_pos
+    global gamemap
+
+    terrain_pane = font.render(gamemap.val_at(rel_mouse_pos).__str__(), True, colordefs.WHITE, colordefs.BLACK)
+
+    screen.blit(terrain_pane, (100, 0))

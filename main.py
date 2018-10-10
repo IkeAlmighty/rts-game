@@ -20,14 +20,6 @@ def main():
 
     app.init_slot_buttons()
 
-    unit = Entity("UNIT", (300, 300), value=10, speed=1)
-    while not unit.can_traverse(app.gamemap, unit.location):
-        if unit.location[0] > app.gamemap.width: unit.move_to((0, unit.location[1] + 1))
-        else: unit.move_to((unit.location[0] + 1, unit.location[1]))
-    print("unit location: ", unit.location, "traversable = ", unit.can_traverse(app.gamemap, unit.location))
-    entities.add_entity(unit)
-    app.gamemap.drawEntity(unit)
-
     relic = Entity("RELIC", (200, 100))
     entities.add_entity(relic)
     app.gamemap.drawEntity(relic)
@@ -96,6 +88,9 @@ def main():
         #test display on the wood resource icon:
         screen.blit(preloading.wood_resource_image, (app.scr_width - 200, 0))
         screen.blit(preloading.relic_resource_image, (app.scr_width - 120, 0))
+
+        #display the gamemap value on the screen:
+        app.draw_gamemap_value(screen)
 
         #do things with selected entities.
         if controls.mouse_clicked(0):
