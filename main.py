@@ -10,60 +10,35 @@ def main():
     os.environ['SDL_VIDEO_WINDOW_POS'] = "%d,%d" % (0, 0)
     pygame.init()
 
-    scr_width = 800
-    scr_height = 600
-
+    import app
     import controls
-    from controls import Button
 
-    screen = pygame.display.set_mode((scr_width, scr_height))
+    screen = pygame.display.set_mode((app.scr_width, app.scr_height))
+    app.font = pygame.font.SysFont('', 16)
 
-    font = pygame.font.SysFont('', 16)
+    app.init_gamemap()
 
-    unit_slot_bttns = Group()
-    building_slot_bttns = Group()
-    slot_buttons = unit_slot_bttns
-
-    bttn_pos = [scr_width - 50, scr_height - 50]
-    for i in range(0, 10):
-        unit_text = "UNIT " + i.__str__()
-        building_text = "BUILD " + i.__str__()
-
-        unit_button = Button((bttn_pos[0], bttn_pos[1], 48, 48), text=unit_text)
-        building_button = Button((bttn_pos[0], bttn_pos[1], 48, 48), text=building_text, colors = (colordefs.WHITE, colordefs.BROWN))
-
-        bttn_pos[0] -= 50
-        unit_slot_bttns.add(unit_button)
-        building_slot_bttns.add(building_button)
-
-    entity_options_bttns = None
-
-    ###
-    mapSize = (1000, 1000) #mapsize * squ_width is the pixel size (squ_width is defined in the mapping module)
-    startTime = pygame.time.get_ticks()
-    gamemap = GameMap(mapSize)
-    print("generated ", mapSize[0]*mapSize[1], " block map in ", pygame.time.get_ticks() - startTime, " ms")
-    ###
+    app.init_slot_buttons()
 
     unit = Entity("UNIT", (300, 300), value=10, speed=1)
-    while not unit.can_traverse(gamemap, unit.location):
-        if unit.location[0] > gamemap.width: unit.move_to((0, unit.location[1] + 1))
+    while not unit.can_traverse(app.gamemap, unit.location):
+        if unit.location[0] > app.gamemap.width: unit.move_to((0, unit.location[1] + 1))
         else: unit.move_to((unit.location[0] + 1, unit.location[1]))
-    print("unit location: ", unit.location, "traversable = ", unit.can_traverse(gamemap, unit.location))
+    print("unit location: ", unit.location, "traversable = ", unit.can_traverse(app.gamemap, unit.location))
     entities.add_entity(unit)
-    gamemap.drawEntity(unit)
+    app.gamemap.drawEntity(unit)
 
     relic = Entity("RELIC", (200, 100))
     entities.add_entity(relic)
-    gamemap.drawEntity(relic)
-
-    selection = []
+    app.gamemap.drawEntity(relic)
 
     clock = pygame.time.Clock()
     running = True
 
     #event loop:
     while(running):
+
+        app.update_rel_mouse_pos()
 
         #consumes and stores the events in entities.events
         controls.update()
@@ -83,141 +58,63 @@ def main():
                 controls.locked = True
             elif controls.locked == True:
                 controls.locked = False
-                #set the x and y to center on the mouse, with the new res
-                miniWidth = int(gamemap.width*scr_height/gamemap.height)
-                minimap_x = int(scr_width/2) - (miniWidth/2)
-                
-                rel_pos_minimap = (pygame.mouse.get_pos()[0] - minimap_x, pygame.mouse.get_pos()[1])
-                minimap_size = (miniWidth, scr_height)
-
-                x = rel_pos_minimap[0] * gamemap.width / minimap_size[0]
-                y = rel_pos_minimap[1] * gamemap.height / minimap_size[1]
-
-                gamemap.rect.x = -1*x + scr_width/2
-                gamemap.rect.y = -1*y + scr_height/2
+                app.center_on_mouse_from_minimap()
         
         #toggle the unit/building slot buttons on when alt key is pressed:
         if controls.key_released(pygame.K_LALT) or controls.key_released(pygame.K_RALT):
-            if slot_buttons == unit_slot_bttns:
-                slot_buttons = building_slot_bttns
+            if app.slot_buttons == app.unit_slot_buttons:
+                app.slot_buttons = app.building_slot_buttons
             else:
-                slot_buttons = unit_slot_bttns
+                app.slot_buttons = app.unit_slot_buttons
 
-        #MAP SCROLLING LOGIC:
-        ####
+        #Map Scrolling:
         if not controls.locked:
-            mouseX = pygame.mouse.get_pos()[0]
-            mouseY = pygame.mouse.get_pos()[1]
+            app.update_map_position()
+        ##
 
-            if mouseX < 5 and gamemap.rect.x < 500:
-                gamemap.rect.x += controls.scrollspeed
-                if controls.select_box_start != None:
-                    controls.select_box_start[0] += controls.scrollspeed
-
-            if mouseX > scr_width - 5 and gamemap.rect.x + gamemap.width > scr_width - 500:
-                gamemap.rect.x -= controls.scrollspeed
-                if controls.select_box_start != None:
-                    controls.select_box_start[0] -= controls.scrollspeed
-
-            if mouseY < 5 and gamemap.rect.y < 500:
-                gamemap.rect.y += controls.scrollspeed
-                if controls.select_box_start != None:
-                    controls.select_box_start[1] += controls.scrollspeed
-
-            if mouseY > scr_height - 5 and gamemap.rect.y + gamemap.height > scr_width - 500:
-                gamemap.rect.y -= controls.scrollspeed
-                if controls.select_box_start != None:
-                    controls.select_box_start[1] -= controls.scrollspeed
-        ####
-        #END OF MAP SCROLLING LOGIC
-
-        for button in slot_buttons:
-            if button.rect.colliderect(Rect(pygame.mouse.get_pos()[0] - 1, pygame.mouse.get_pos()[1] - 1, 3, 3)):
-                button.set_selected(True)
-            else:
-                button.set_selected(False)
-
-        if entity_options_bttns != None:
-            for button in entity_options_bttns:
-                if button.rect.colliderect(Rect(pygame.mouse.get_pos()[0] - 1, pygame.mouse.get_pos()[1] - 1, 3, 3)):
-                    button.set_selected(True)
-                else:
-                    button.set_selected(False)
+        app.update_button_set_animation(app.unit_slot_buttons)
+        app.update_button_set_animation(app.entity_options_buttons)
 
         #clear screen so that the UI and gamemap can be redrawn.
         screen.fill((0,0,0))
 
-        screen.blit(gamemap.image, gamemap.rect.topleft)
+        screen.blit(app.gamemap.image, app.gamemap.rect.topleft)
 
         if controls.locked: #show the mini map if controls are locked
-            minimap = gamemap.image.copy() #the minimap is recreated each frame to capture entity movement.
-            minimap.set_alpha(220)
-            miniWidth = int(gamemap.width*scr_height/gamemap.height)
-            minimap = pygame.transform.scale(minimap, (miniWidth, scr_height))
-            x = int(scr_width/2) - (miniWidth/2)
-            y = 0
-            screen.blit(minimap, (x, y))
-            gamemap.image.set_alpha(100)
+            app.draw_minimap(screen)
+            app.gamemap.image.set_alpha(50)
         else:
-            if gamemap.image.get_alpha() != 255:
-                gamemap.image.set_alpha(255)
-            slot_buttons.draw(screen) #draws every frame so that animations can properly happen
-            if entity_options_bttns != None:
-                entity_options_bttns.draw(screen)
+            if app.gamemap.image.get_alpha() != 255:
+                app.gamemap.image.set_alpha(255)
+            app.slot_buttons.draw(screen) #draws every frame so that animations can properly happen
+            if app.entity_options_buttons != None:
+                app.entity_options_buttons.draw(screen)
 
         #display mouse position relative to the game map
-        rel_mouse_pos = [pygame.mouse.get_pos()[0] - gamemap.rect.x, pygame.mouse.get_pos()[1] - gamemap.rect.y]
-        pos_pane = font.render(rel_mouse_pos.__str__(), False, colordefs.WHITE, colordefs.BLACK)
-        screen.blit(pos_pane, (0, 0))
-
-        #display whether or not the position is traversable by game entities.
-        trav_pane = font.render(unit.can_traverse(gamemap, rel_mouse_pos).__str__(), False, colordefs.WHITE, colordefs.BLACK)
-        screen.blit(trav_pane, (75, 0))
+        app.draw_mouse_pos_panel(screen)
 
         #test display on the wood resource icon:
-        screen.blit(preloading.wood_resource_image, (scr_width - 200, 0))
-        screen.blit(preloading.relic_resource_image, (scr_width - 120, 0))
+        screen.blit(preloading.wood_resource_image, (app.scr_width - 200, 0))
+        screen.blit(preloading.relic_resource_image, (app.scr_width - 120, 0))
 
         #do things with selected entities.
         if controls.mouse_clicked(0):
-            selection = controls.get_selection(gamemap)
+            app.selection = controls.get_selection(app.gamemap)
             
             #set up the entity option panel to reflect selection[0]:
-            entity_options_bttns = Group()
-            x = 0
-            y = scr_height - 50*2
-            if len(selection) > 0:
-                for option in selection[0].options:
-                    if x >= 150:
-                        x = 0
-                        y += 50
-                    entity_options_bttns.add(Button((x, y, 48, 48), ident=option, text=option, colors=(colordefs.WHITE, colordefs.BLACK)))
-                    x += 50
+            app.draw_info_panel(screen, app.selection)
 
             #outline transparent borders of entities that are selected:
-            for entity in selection:
-                entity.set_selected(True)
-                gamemap.eraseEntity(entity)
-                gamemap.drawEntity(entity)
-            for entity in entities.all_entities:
-                if entity not in selection and entity.is_selected:
-                    entity.set_selected(False)
-                    gamemap.eraseEntity(entity)
-                    gamemap.drawEntity(entity)
+            app.set_entities_selected(app.selection)
+            
 
-        #attempt to update all outdated entities.
-        for e in entities.outdated_entities:
-            gamemap.eraseEntity(e)
-        entities.update()
-        for e in entities.outdated_entities:
-            gamemap.drawEntity(e)
-            if len(e.path) == 0:
-                entities.outdated_entities.remove(e)
+        # call update() method on outdated entities.
+        app.update_outdated_entities()
 
         # set destination for all selected entities.   
         if controls.mouse_clicked(2):
-            for entity in selection:
-                entity.set_dest(gamemap, (rel_mouse_pos[0], rel_mouse_pos[1]))
+            for entity in app.selection:
+                entity.set_dest(app.gamemap, (app.rel_mouse_pos[0], app.rel_mouse_pos[1]))
                 entities.flag_for_update(entity)
 
         #update the selection box graphic.
