@@ -16,7 +16,7 @@ def main():
     import controls
     from controls import Button
 
-    screen = pygame.display.set_mode((scr_width, scr_height), pygame.FULLSCREEN)
+    screen = pygame.display.set_mode((scr_width, scr_height))
 
     font = pygame.font.SysFont('', 16)
 
@@ -36,6 +36,8 @@ def main():
         unit_slot_bttns.add(unit_button)
         building_slot_bttns.add(building_button)
 
+    entity_options_bttns = None
+
     ###
     mapSize = (1000, 1000) #mapsize * squ_width is the pixel size (squ_width is defined in the mapping module)
     startTime = pygame.time.get_ticks()
@@ -43,7 +45,7 @@ def main():
     print("generated ", mapSize[0]*mapSize[1], " block map in ", pygame.time.get_ticks() - startTime, " ms")
     ###
 
-    unit = Entity("UNIT", (300, 300))
+    unit = Entity("UNIT", (300, 300), value=10, speed=1)
     while not unit.can_traverse(gamemap, unit.location):
         if unit.location[0] > gamemap.width: unit.move_to((0, unit.location[1] + 1))
         else: unit.move_to((unit.location[0] + 1, unit.location[1]))
@@ -67,7 +69,7 @@ def main():
         controls.update()
 
         #check for program quit events:
-        if controls.key_released(pygame.K_q):
+        if controls.key_released(pygame.K_ESCAPE):
             running = False
 
         for event in controls.events:
@@ -134,7 +136,13 @@ def main():
                 button.set_selected(True)
             else:
                 button.set_selected(False)
-        
+
+        if entity_options_bttns != None:
+            for button in entity_options_bttns:
+                if button.rect.colliderect(Rect(pygame.mouse.get_pos()[0] - 1, pygame.mouse.get_pos()[1] - 1, 3, 3)):
+                    button.set_selected(True)
+                else:
+                    button.set_selected(False)
 
         #clear screen so that the UI and gamemap can be redrawn.
         screen.fill((0,0,0))
@@ -154,6 +162,8 @@ def main():
             if gamemap.image.get_alpha() != 255:
                 gamemap.image.set_alpha(255)
             slot_buttons.draw(screen) #draws every frame so that animations can properly happen
+            if entity_options_bttns != None:
+                entity_options_bttns.draw(screen)
 
         #display mouse position relative to the game map
         rel_mouse_pos = [pygame.mouse.get_pos()[0] - gamemap.rect.x, pygame.mouse.get_pos()[1] - gamemap.rect.y]
@@ -164,9 +174,27 @@ def main():
         trav_pane = font.render(unit.can_traverse(gamemap, rel_mouse_pos).__str__(), False, colordefs.WHITE, colordefs.BLACK)
         screen.blit(trav_pane, (75, 0))
 
+        #test display on the wood resource icon:
+        screen.blit(preloading.wood_resource_image, (scr_width - 200, 0))
+        screen.blit(preloading.relic_resource_image, (scr_width - 120, 0))
+
         #do things with selected entities.
         if controls.mouse_clicked(0):
             selection = controls.get_selection(gamemap)
+            
+            #set up the entity option panel to reflect selection[0]:
+            entity_options_bttns = Group()
+            x = 0
+            y = scr_height - 50*2
+            if len(selection) > 0:
+                for option in selection[0].options:
+                    if x >= 150:
+                        x = 0
+                        y += 50
+                    entity_options_bttns.add(Button((x, y, 48, 48), ident=option, text=option, colors=(colordefs.WHITE, colordefs.BLACK)))
+                    x += 50
+
+            #outline transparent borders of entities that are selected:
             for entity in selection:
                 entity.set_selected(True)
                 gamemap.eraseEntity(entity)

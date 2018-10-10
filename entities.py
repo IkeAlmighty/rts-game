@@ -46,14 +46,23 @@ def get_entity_type_image(entity_type, owner):
 
     return image
 
+def match_options_to_type(entity_type):
+
+    if entity_type == "TREE":
+        return ["Chop", "Grow", "Eat", "Burn"]
+
+    return [] #empty options list.
+
 class Entity(pygame.sprite.Sprite):
 
     #the entity location should be passed as the topleft of the entity, but is corrected to be
     #the graphical center when the entity is created.
-    def __init__(self, entity_type, location, value = 0, speed = 2, owner = 0):
+    def __init__(self, entity_type, location, value = 0, speed = 0, owner = 0):
         super().__init__()
         self.image_not_selected = get_entity_type_image(entity_type, owner)
         self.image = self.image_not_selected
+
+        self.options = match_options_to_type(entity_type)
 
         self.value = value
         self.owner = owner

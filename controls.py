@@ -88,10 +88,12 @@ def get_selection(gameMap):
 
     select_box_start = None
 
+    #TODO: remove the following prints for product version.
     print("selection:")
     for e in selection:
         print(e)
     return selection
+    #####
     
 
 def update_selection_box(screen):
