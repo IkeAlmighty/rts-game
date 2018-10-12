@@ -6,16 +6,17 @@ from entities import Entity
 squ_width = 3
 
 #set thresholds for terrain:
-water = (0.0, 0.6)
-grassland = (0.6, 1.0)
-mountain_low = (1.1, 1.5)
-mountain_mid = (1.5, 1.7)
-mountain_high = (1.7, 2.1)
+water = (0.0, 0.5)
+grassland = (0.5, 0.7)
+mountain_low = (0.7, 0.75)
+mountain_mid = (0.75, 0.8)
+mountain_high = (0.8, 1.1)
 
 def within(val, tuple):
         return val >= tuple[0] and val < tuple[1]
 
-def create_noise_map(size, octaves):
+#creates a noise map of values between 0.0 and 1.0
+def create_noise_map(size, octaves, max_val):
     value_map = [0.0 for i in range(size[0]*size[1])]
     x_off = (random.randint(0, size[0]), random.randint(0, size[0]))
     y_off = (random.randint(0, size[1]), random.randint(0, size[0]))
@@ -28,9 +29,9 @@ def create_noise_map(size, octaves):
                 octaves
             )
             
-            value = math.sin(value) + 0.5
-            if value < 0.0: value = 0.0
-            if value > 1.0: value = 1.0
+            value = (max_val/2)*math.sin(value) + 0.5
+            if value > max_val: value = max_val
+            if value < 0: value = 0
 
             value_map[x*size[1] + y] = value
             
@@ -40,7 +41,9 @@ class GameMap(pygame.sprite.Sprite):
 
     def __init__(self, size):
         super().__init__()
-        self.value_map = create_noise_map(size, 5)
+        self.value_map = create_noise_map(size, 5, 1.0)
+
+        print(max(self.value_map))
         
         self.width = size[0]*squ_width #width in pixels, not squares
         self.height = size[1]*squ_width
