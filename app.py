@@ -5,7 +5,7 @@ from entities import Entity
 scr_width = 800
 scr_height = 600
 
-map_size = (300, 300)
+map_size = (1000, 1000)
 
 font = None
 
