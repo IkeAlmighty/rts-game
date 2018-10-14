@@ -32,6 +32,10 @@ def main():
     entities.add_entity(relic)
     app.gamemap.drawEntity(relic)
 
+    shipwreck = Entity("SHIP_WRECK", (300, 100))
+    entities.add_entity(shipwreck)
+    app.gamemap.drawEntity(shipwreck)
+
     clock = pygame.time.Clock()
     running = True
 

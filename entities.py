@@ -43,6 +43,8 @@ def get_entity_type_image(entity_type, owner):
         image = preloading.relic_image
     elif entity_type == "DOT":
         image = preloading.dot_image
+    elif entity_type == "SHIP_WRECK":
+        image = preloading.ship_reck_image
 
     return image
 
