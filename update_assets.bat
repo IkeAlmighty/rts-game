@@ -1,2 +1,1 @@
-
-xcopy "asset_stage/" "assets/"
+xcopy "C:\Users\Isaac\Dropbox\Apps\Games\rts game\v3\asset_stage" "C:\Users\Isaac\Dropbox\Apps\Games\rts game\v3\assets" /s /v /e
