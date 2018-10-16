@@ -127,6 +127,7 @@ class Entity(pygame.sprite.Sprite):
                 trav = float(self.can_traverse(gamemap, index_to_pos(adj[pos_i], path_point)))
                 distance = math.sqrt((dest[0] - x)**2 + (dest[1] - y)**2) + 0.0000001
                 adj[pos_i] += trav*(1.0/distance)
+                print("adj: ", adj[pos_i])
 
             #if the highest weighted position has value of 0.0, then break the loop:
             if max(adj) == 0.0:

@@ -13,7 +13,7 @@ def main():
     import app
     import controls
 
-    screen = pygame.display.set_mode((app.scr_width, app.scr_height))
+    screen = pygame.display.set_mode((app.scr_width, app.scr_height), pygame.FULLSCREEN)
     app.font = pygame.font.SysFont('', 16)
 
     app.init_gamemap()
@@ -24,7 +24,7 @@ def main():
     entities.add_entity(relic)
     app.gamemap.drawEntity(relic)
 
-    shipwreck = Entity("SHIP_WRECK", (300, 100))
+    shipwreck = Entity("SHIP_WRECK", (300, 100), speed=4)
     entities.add_entity(shipwreck)
     app.gamemap.drawEntity(shipwreck)
 
