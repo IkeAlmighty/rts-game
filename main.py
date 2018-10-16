@@ -18,28 +18,7 @@ def main():
 
     app.init_gamemap()
 
-<<<<<<< HEAD
-        bttn_pos[0] -= 50
-        unit_slot_bttns.add(unit_button)
-        building_slot_bttns.add(building_button)
-
-    ###
-    mapSize = (1000, 1000) #mapsize * squ_width is the pixel size (squ_width is defined in the mapping module)
-    startTime = pygame.time.get_ticks()
-    gamemap = GameMap(mapSize)
-    print("generated ", mapSize[0]*mapSize[1], " block map in ", pygame.time.get_ticks() - startTime, " ms")
-    ###
-
-    unit = Entity("UNIT", (300, 300))
-    while not unit.can_traverse(unit.location, gamemap):
-        if unit.location[0] > gamemap.width: unit.move_to((0, unit.location[1] + 1))
-        else: unit.move_to((unit.location[0] + 1, unit.location[1]))
-    print("unit location: ", unit.location, "traversable = ", unit.can_traverse(unit.location, gamemap))
-    entities.add_entity(unit)
-    gamemap.drawEntity(unit)
-=======
     app.init_slot_buttons()
->>>>>>> master
 
     relic = Entity("RELIC", (200, 100))
     entities.add_entity(relic)
