@@ -99,89 +99,42 @@ class Entity(pygame.sprite.Sprite):
     #returns a path to the location in the form 
     #of an array of points.
     def create_path(self, gamemap, dest):
-        path = []
 
-        #create the starting path point:
-        path_point = (self.location[0], self.location[1])
-        while(dest not in path):
-            #Create an array rerpresenting the 8 
-            #squares adjacent to the entity. Weight 
-            #each square based on how close it is to the 
-            #destination, zeroing out any that are not
-            #traversable.
-            adj = [0.0 for i in range(8)]
-            def index_to_pos(index, center_pos):
-                if index == 0: return (center_pos[0] - 1, center_pos[1] - 1)
-                elif index == 1: return (center_pos[0], center_pos[1] - 1)
-                elif index == 2: return (center_pos[0] + 1, center_pos[1] - 1)
-                elif index == 3: return (center_pos[0] - 1, center_pos[1])
-                elif index == 4: return (center_pos[0] + 1, center_pos[1])
-                elif index == 5: return (center_pos[0] - 1, center_pos[1] + 1)
-                elif index == 6: return (center_pos[0], center_pos[1] + 1)
-                else: return (center_pos[0] + 1, center_pos[1] + 1)
+        visited = {}
+        frontier = []
 
-            for pos_i in range(8):
-                x = index_to_pos(pos_i, path_point)[0]
-                y = index_to_pos(pos_i, path_point)[1]
-                #trav is 0.0 when is_traversable returns False, 1.0 if True
-                trav = float(self.can_traverse(gamemap, index_to_pos(adj[pos_i], path_point)))
-                distance = math.sqrt((dest[0] - x)**2 + (dest[1] - y)**2) + 0.0000001
-                adj[pos_i] += trav*(1.0/distance)
-                print("adj: ", adj[pos_i])
+        start_point = (int(self.location[0]), int(self.location[1]))
+        current_point = start_point
+        visited.put(current_point, True)
 
-            #if the highest weighted position has value of 0.0, then break the loop:
-            if max(adj) == 0.0:
-                break
-
-            #find the highest weighted position's (which should be the closest) index 
-            highest_value_index = adj.index(max(adj))
-            #add the position to the path.
-            path.append(index_to_pos(highest_value_index, path_point))
+        while current_point != dest:
+            #add the neighbors of the current point to the frontier
+            for x in range(current_point[0] - 1, current_point[0] + 1):
+                for y in range(current_point[1] - 1, current_point[1] + 1):
+                    if gamemap.get_land_type(gamemap.val_at((x, y))) != "water" and not visited[(x, y)]:
+                        frontier.insert(0, (x, y)) 
             
-            return path
-
-        def get_waypoint_path(start_point, waypoint, end_point):
-            waypoint_path = []
-            subpath1 = get_simple_path(start_point, waypoint)
-            subpath2 = get_simple_path(waypoint, end_point)
-            for p in subpath1:
-                waypoint_path.append(p)
-            for p in subpath2:
-                waypoint_path.append(p)
-            return waypoint_path
-
-        def get_combined_paths(paths):
-            combined_path = []
-            for path in paths:
-                for point in path:
-                    combined_path.append(point)
-            return combined_path
+            visited.put(current_point, True)
+            current_point = frontier.pop()
         
-        def get_unit_perp(vector):
-            theta = math.atan(vector[1]/vector[0])
-            theta += 90*math.pi/180
-            return (math.cos(theta), math.sin(theta))
-
-        start_point = (self.location[0], self.location[1])
-
-        path = get_simple_path(start_point, end_point)
-
-        possible_paths = []
-
-        for point in path:
-            if not self.can_traverse(point, gamemap):
-                start_index = point.index()
-                end_index = point.index() + 1
-                while not end_index < len(simple_path) and self.can_traverse(path[end_index], gamemap):
-                    end_index += 1
-                center_index = int((start_index + end_index)/2)
-
-                dx = path[end_index][0] - path[start_index][0]
-                dy = path[end_index][1] - path[start_index][1]
-                magnitude = math.sqrt(dx**2 + dy**2)
-                search_vector = (dx/magnitude, dy/magnitude)
-                search_vector = get_unit_perp(search_vector)
-                
+        #now that we have visited points up to the destination,
+        #work backwards from the destination through the 
+        #visited list, taking the points closest to the start location:
+        path = []
+        while current_point != start_point:
+            options = []
+            for x in range(current_point[0] - 1, current_point[0] + 1):
+                for y in range(current_point[1] - 1, current_point[1] + 1):
+                    if visited[(x, y)]:
+                        options.append(((x, y), math.sqrt((start_point[0] - x)**2 + (start_point[1] - y)**2))
+            
+            max_distance = 0
+            final_option = None
+            for option in options:
+                if option[1] > max_distance:
+                    final_option = option[0]
+            
+            path.append(final_option)
 
         return path
 
