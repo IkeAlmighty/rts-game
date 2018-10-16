@@ -89,18 +89,12 @@ def main():
         #display mouse position relative to the game map
         app.draw_mouse_pos_panel(screen)
 
-<<<<<<< HEAD
-        #display whether or not the position is traversable by game entities.
-        trav_pane = font.render(unit.can_traverse(rel_mouse_pos, gamemap).__str__(), False, colordefs.WHITE, colordefs.BLACK)
-        screen.blit(trav_pane, (75, 0))
-=======
         #test display on the wood resource icon:
         screen.blit(preloading.wood_resource_image, (app.scr_width - 200, 0))
         screen.blit(preloading.relic_resource_image, (app.scr_width - 120, 0))
 
         #display the gamemap value on the screen:
         app.draw_gamemap_value(screen)
->>>>>>> master
 
         #do things with selected entities.
         if controls.mouse_clicked(0):

@@ -197,15 +197,9 @@ class Entity(pygame.sprite.Sprite):
                     pos = self.path.pop(0)
                     self.move_to(pos)
 
-<<<<<<< HEAD
-    def can_traverse(self, position, gamemap): 
-        center = (int(position[0] + self.rect.width/2), int(position[1] + self.rect.height/2))
-        return int(gamemapping.within(gamemap.val_at(center), gamemapping.grassland))
-=======
     def can_traverse(self, gamemap, pos): 
         center = (int(pos[0] + self.rect.width/2), int(pos[1] + self.rect.height/2))
         return int(gamemap.get_land_type(gamemap.val_at(center)) == "grassland")
->>>>>>> master
 
 
     def move_to(self, position):
