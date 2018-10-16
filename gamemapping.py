@@ -5,50 +5,47 @@ from entities import Entity
 
 squ_width = 3
 
-#set thresholds for terrain:
-water = (0.1, 0.1999)
-grassland = (0.2, 0.2999)
-mountain_low = (0.3, 0.3999)
-mountain_mid = (0.4, 0.5999)
-mountain_high = (0.6, 0.7)
+#creates a noise map of values between 0.0 and 1.0
+def create_noise_map(size, octaves=5, max_val=1.0):
+    value_map = [0.0 for i in range(size[0]*size[1])]
+    x_off = (random.randint(0, 100000), random.randint(0, 100000))
+    y_off = (random.randint(0, 100000), random.randint(0, 100000))
+    for x in range(size[0]):
+        for y in range(size[1]):
 
-def within(val, tuple):
-        return val >= tuple[0] and val <= tuple[1]
-
-def generate_map(size):
-
-    width = size[0]
-    height = size[1]
-    vmap = [0.0 for i in range(width*height)]
-
-    #generate a noisy map:
-    noiseYOff = random.randint(0, 100000)
-    noiseXOff = random.randint(0, 100000)
-    for x in range(0, width):
-        for y in range(0, height):
-            #the following math is kinda just spitballing (after perlin noise) to get height values I like
-            value = noise.pnoise2(float((x + noiseXOff)/width), float((y + noiseYOff)/height), 6)
-            value = math.sin(value) + 0.5
-            if value < 0.0: value = 0.0
-            if value > 1.0: value = 1.0
+            value = noise.pnoise2(
+                float((x + x_off[0])/size[0]), 
+                float((y + y_off[0])/size[1]), 
+                octaves
+            )
             
-            #normalize all the values:
-            if value < 0.5: value = water[0]
-            elif value < 0.70: value = grassland[0]
-            elif value < 0.75: value = mountain_low[0]
-            elif value < 0.80: value = mountain_mid[0]
-            else: value = mountain_high[0]
-            
-            #set the value
-            vmap[x*height + y] = value
+            value = (max_val/2)*math.sin(value) + 0.5
+            if value > max_val: value = max_val
+            if value < 0: value = 0
 
-    return vmap
+            value_map[x*size[1] + y] = value
+            
+    return value_map
 
 class GameMap(pygame.sprite.Sprite):
 
-    def __init__(self, size):
+    def __init__(self, size, percent_water=0.5, percent_land=0.3, percent_mountain=0.2):
         super().__init__()
-        self.valMap = generate_map(size)
+        self.value_map = create_noise_map(size, octaves=6)
+
+        self.max_val = max(self.value_map)
+        self.min_val = min(self.value_map)
+
+        # 'max marks the value', AKA the threshold values mark the maximum possible value of each terrain type.
+        self.thresholds = [
+            [(self.max_val - self.min_val)*percent_water + self.min_val, "water"], 
+            [(self.max_val - self.min_val)*(percent_water + percent_land) + self.min_val, "grassland"], 
+            [(self.max_val - self.min_val)*(percent_water + percent_land + percent_mountain/3) + self.min_val, "mountain_low"], 
+            [(self.max_val - self.min_val)*(percent_water + percent_land + 2.3*percent_mountain/3) + self.min_val, "mountain_mid"], 
+            [self.max_val, "mountain_high"]
+        ]
+
+        print(self.thresholds, " min_val=", self.min_val, ", max_val=", self.max_val)
         
         self.width = size[0]*squ_width #width in pixels, not squares
         self.height = size[1]*squ_width
@@ -56,32 +53,32 @@ class GameMap(pygame.sprite.Sprite):
         self.image = pygame.Surface((self.width, self.height))
         self.rect = self.image.get_rect()
 
-        self.__color()
+        self.__color_image()
         #base image and map don't have any entities on them. Used for erasing and entity from the main image and buffer image.
         self.baseImage = self.image.copy()
-        self.baseMap = self.valMap.copy()
+        self.baseMap = self.value_map.copy()
         
         self.__add_trees()
 
-    def __color(self):
-        vmapWidth = int(self.width/squ_width)
-        vmapHeight = int(self.height/squ_width)
+    def __color_image(self):
+        map_width = int(self.width/squ_width)
+        map_height = int(self.height/squ_width)
 
-        for x in range(vmapWidth):
-            for y in range(vmapHeight):
+        for x in range(map_width):
+            for y in range(map_height):
                 
-                value = self.valMap[x*vmapHeight + y]
+                value = self.value_map[x*map_height + y]
                 rect = Rect(x*squ_width, y*squ_width, squ_width, squ_width)
                 
-                if within(value, water):
+                if self.get_land_type(value) == "water":
                     self.image.fill(colordefs.WATER, rect)
-                elif within(value, grassland):
+                elif self.get_land_type(value) == "grassland":
                     self.image.fill(colordefs.LOWLAND, rect)
-                elif within(value, mountain_low):
+                elif self.get_land_type(value) == "mountain_low":
                     self.image.fill(colordefs.MOUNTAIN_LOW, rect)
-                elif within(value, mountain_mid):
+                elif self.get_land_type(value) == "mountain_mid":
                     self.image.fill(colordefs.MOUNTAIN_MID, rect)
-                elif within(value, mountain_high):
+                elif self.get_land_type(value) == "mountain_high":
                     self.image.fill(colordefs.MOUNTAIN_HIGH, rect)
                 else:
                     self.image.fill(colordefs.RED, rect)
@@ -100,14 +97,29 @@ class GameMap(pygame.sprite.Sprite):
                 if value < 0.0: value = 0.0
                 if value > 1.0: value = 1.0
 
-                if value > 0.4 and value < 0.7 and (within(self.valMap[x*vmapHeight + y], grassland) or within(self.valMap[x*vmapHeight + y], mountain_low)) and random.randint(0, 10000) > 9996: 
+                if value > 0.4 and value < 0.7 and (self.get_land_type(self.value_map[x*vmapHeight + y]) == "grassland" or self.get_land_type(self.value_map[x*vmapHeight + y]) == "mountain_low") and random.randint(0, 10000) > 9996: 
                     entity = Entity("TREE", (x*squ_width, y*squ_width), random.randint(10, 50))
                     entities.add_entity(entity) #this works janky 
                     self.drawEntity(entity)
-                elif value >= 0.7 and within(self.valMap[x*vmapHeight + y], grassland) and random.randint(0, 10000) > 9990: 
+                elif value >= 0.7 and self.get_land_type(self.value_map[x*vmapHeight + y]) == "grassland" and random.randint(0, 10000) > 9990: 
                     entity = Entity("TREE", (x*squ_width, y*squ_width), random.randint(20, 50))
                     entities.add_entity(entity) #this works janky 
                     self.drawEntity(entity)
+
+    def get_land_type(self, value):
+
+        if value < self.min_val or value > self.max_val:
+            raise Exception("Invalid terrain value: " + value.__str__())
+
+        #edge case for the following loop
+        if value < self.thresholds[0][0]:
+            return self.thresholds[0][1] #return water
+
+        for i in range(0, len(self.thresholds) - 1):
+            if value > self.thresholds[i][0] and value <= self.thresholds[i + 1][0]:
+                return self.thresholds[i + 1][1]
+
+        return None
 
     def __is_valid_pos(self, pos):
         x = int(pos[0] / squ_width)
@@ -122,7 +134,7 @@ class GameMap(pygame.sprite.Sprite):
         x = int(pos[0] / squ_width)
         y = int(pos[1] / squ_width)
 
-        return self.valMap[x*int(self.height/squ_width) + y]
+        return self.value_map[x*int(self.height/squ_width) + y]
 
     def drawEntity(self, entity):
         self.image.blit(entity.image, (entity.rect.x, entity.rect.y))

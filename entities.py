@@ -43,17 +43,28 @@ def get_entity_type_image(entity_type, owner):
         image = preloading.relic_image
     elif entity_type == "DOT":
         image = preloading.dot_image
+    elif entity_type == "SHIP_WRECK":
+        image = preloading.ship_reck_image
 
     return image
+
+def match_options_to_type(entity_type):
+
+    if entity_type == "TREE":
+        return ["Chop", "Grow", "Eat", "Burn"]
+
+    return [] #empty options list.
 
 class Entity(pygame.sprite.Sprite):
 
     #the entity location should be passed as the topleft of the entity, but is corrected to be
     #the graphical center when the entity is created.
-    def __init__(self, entity_type, location, value = 0, speed = 2, owner = 0):
+    def __init__(self, entity_type, location, value = 0, speed = 0, owner = 0):
         super().__init__()
         self.image_not_selected = get_entity_type_image(entity_type, owner)
         self.image = self.image_not_selected
+
+        self.options = match_options_to_type(entity_type)
 
         self.value = value
         self.owner = owner
@@ -86,28 +97,48 @@ class Entity(pygame.sprite.Sprite):
             self.image = self.image_not_selected
 
     #returns a path to the location in the form 
-    #of an array of points. Calls itself recursively 
-    #with a waypoint if there are objects blocking the path.
-    def create_path(self, gamemap, end_point):
+    #of an array of points.
+    def create_path(self, gamemap, dest):
+        path = []
 
-        def in_range_of(num, range_of):
-            return num > range_of - 1 and num < range_of + 1
+        #create the starting path point:
+        path_point = (self.location[0], self.location[1])
+        while(dest not in path):
+            #Create an array rerpresenting the 8 
+            #squares adjacent to the entity. Weight 
+            #each square based on how close it is to the 
+            #destination, zeroing out any that are not
+            #traversable.
+            adj = [0.0 for i in range(8)]
+            def index_to_pos(index, center_pos):
+                if index == 0: return (center_pos[0] - 1, center_pos[1] - 1)
+                elif index == 1: return (center_pos[0], center_pos[1] - 1)
+                elif index == 2: return (center_pos[0] + 1, center_pos[1] - 1)
+                elif index == 3: return (center_pos[0] - 1, center_pos[1])
+                elif index == 4: return (center_pos[0] + 1, center_pos[1])
+                elif index == 5: return (center_pos[0] - 1, center_pos[1] + 1)
+                elif index == 6: return (center_pos[0], center_pos[1] + 1)
+                else: return (center_pos[0] + 1, center_pos[1] + 1)
 
-        def get_simple_path(start_point, end_point):
-            simple_path = []
-            dx = end_point[0] - start_point[0]
-            dy = end_point[1] - start_point[1]
-            magnitude = math.sqrt(dx**2 + dy**2)
-            search_vector = (dx/magnitude, dy/magnitude)
+            for pos_i in range(8):
+                x = index_to_pos(pos_i, path_point)[0]
+                y = index_to_pos(pos_i, path_point)[1]
+                #trav is 0.0 when is_traversable returns False, 1.0 if True
+                trav = float(self.can_traverse(gamemap, index_to_pos(adj[pos_i], path_point)))
+                distance = math.sqrt((dest[0] - x)**2 + (dest[1] - y)**2) + 0.0000001
+                adj[pos_i] += trav*(1.0/distance)
+                print("adj: ", adj[pos_i])
 
-            current_point = [start_point[0], start_point[1]]
+            #if the highest weighted position has value of 0.0, then break the loop:
+            if max(adj) == 0.0:
+                break
 
-            while not (in_range_of(current_point[0], end_point[0]) and in_range_of(current_point[1], end_point[1])):
-                current_point[0] += search_vector[0]
-                current_point[1] += search_vector[1]
-                simple_path.append(current_point.copy())
+            #find the highest weighted position's (which should be the closest) index 
+            highest_value_index = adj.index(max(adj))
+            #add the position to the path.
+            path.append(index_to_pos(highest_value_index, path_point))
             
-            return simple_path
+            return path
 
         def get_waypoint_path(start_point, waypoint, end_point):
             waypoint_path = []
@@ -166,9 +197,15 @@ class Entity(pygame.sprite.Sprite):
                     pos = self.path.pop(0)
                     self.move_to(pos)
 
+<<<<<<< HEAD
     def can_traverse(self, position, gamemap): 
         center = (int(position[0] + self.rect.width/2), int(position[1] + self.rect.height/2))
         return int(gamemapping.within(gamemap.val_at(center), gamemapping.grassland))
+=======
+    def can_traverse(self, gamemap, pos): 
+        center = (int(pos[0] + self.rect.width/2), int(pos[1] + self.rect.height/2))
+        return int(gamemap.get_land_type(gamemap.val_at(center)) == "grassland")
+>>>>>>> master
 
 
     def move_to(self, position):
