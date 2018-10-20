@@ -3,7 +3,7 @@ import broadcasting, network, gamemapping, colordefs, preloading, entities
 from pygame import Rect
 from gamemapping import GameMap
 from pygame.sprite import Group
-from entities import Entity
+from entities import *
 
 def main():
 
@@ -13,18 +13,14 @@ def main():
     import app
     import controls
 
-    screen = pygame.display.set_mode((app.scr_width, app.scr_height), pygame.FULLSCREEN)
+    screen = pygame.display.set_mode((app.scr_width, app.scr_height))
     app.font = pygame.font.SysFont('', 16)
 
     app.init_gamemap()
 
     app.init_slot_buttons()
 
-    relic = Entity("RELIC", (200, 100))
-    entities.add_entity(relic)
-    app.gamemap.drawEntity(relic)
-
-    shipwreck = Entity("SHIP_WRECK", (300, 100), speed=4)
+    shipwreck = entities.Unit(None, (100, 100), 0)
     entities.add_entity(shipwreck)
     app.gamemap.drawEntity(shipwreck)
 
@@ -46,15 +42,15 @@ def main():
         for event in controls.events:
             if event.type == pygame.QUIT:
                 running = False
-        
-        #check status on control locking
-        #space bar toggles control locking (and minimap display)
-        if controls.key_released(pygame.K_SPACE):
-            if controls.locked == False:
-                controls.locked = True
-            elif controls.locked == True:
-                controls.locked = False
-                app.center_on_mouse_from_minimap()
+
+            #check status on control locking
+            #scrolling toggles control locking (and minimap display)
+            if event.type == pygame.MOUSEBUTTONDOWN:
+                if event.button == 5 and controls.locked == False:
+                    controls.locked = True
+                elif event.button == 4 and controls.locked == True:
+                    controls.locked = False
+                    app.center_on_mouse_from_minimap()
         
         #toggle the unit/building slot buttons on when alt key is pressed:
         if controls.key_released(pygame.K_LALT) or controls.key_released(pygame.K_RALT):
