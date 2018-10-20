@@ -13,8 +13,10 @@ def main():
     import app
     import controls
 
-    screen = pygame.display.set_mode((app.scr_width, app.scr_height), pygame.FULLSCREEN)
+    screen = pygame.display.set_mode((app.scr_width, app.scr_height))
     app.font = pygame.font.SysFont('', 16)
+
+    entities.screen = screen
 
     app.init_gamemap()
 

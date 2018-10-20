@@ -5,7 +5,7 @@ from entities import Entity
 scr_width = 800
 scr_height = 600
 
-map_size = (1000, 1000)
+map_size = (300, 300)
 
 font = None
 
@@ -25,7 +25,7 @@ def init_gamemap():
     global gamemap
     global map_size
     start_time = pygame.time.get_ticks()
-    gamemap = gamemapping.GameMap(map_size,0.3, 0.3, 0.4)
+    gamemap = gamemapping.GameMap(map_size,0.9, 0.0, 0.1)
     print("generated ", map_size[0]*map_size[1], " block map in ", pygame.time.get_ticks() - start_time, " ms")
 
 def init_slot_buttons():

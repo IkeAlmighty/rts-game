@@ -1,4 +1,5 @@
-import pygame, preloading, math, random, pygame.time
+import pygame, preloading, math, random, pygame.time, datastructures
+from datastructures import PriorityQueue
 from pygame.sprite import Sprite
 from pygame import Surface, Rect
 import gamemapping
@@ -6,6 +7,8 @@ import gamemapping
 all_entities = []
 
 outdated_entities = []
+
+screen = None
 
 def add_entity(entity):
     if entity not in all_entities:
@@ -100,41 +103,51 @@ class Entity(pygame.sprite.Sprite):
     #of an array of points.
     def create_path(self, gamemap, dest):
 
-        visited = {}
-        frontier = []
+        global screen
+
+        def collide_with(point_a, point_b):
+            return point_a[0] <= point_b[0] + gamemapping.squ_width and point_a[0] > point_b[0] and point_a[1] <= point_b[1] + gamemapping.squ_width and point_a[1] > point_b[1]
+        
+        def neighbors(point):
+            return [
+                (point[0] - gamemapping.squ_width, point[1]),
+                (point[0] + gamemapping.squ_width, point[1]),
+                (point[0], point[1] + gamemapping.squ_width), 
+                (point[0], point[1] - gamemapping.squ_width)
+            ]
+        
+        def heuristic(point_a, point_b):
+            return abs(point_a[0] - point_b[0]) + abs(point_a[1] - point_b[1])
+
 
         start_point = (int(self.location[0]), int(self.location[1]))
         current_point = start_point
-        visited.put(current_point, True)
 
-        while current_point != dest:
-            #add the neighbors of the current point to the frontier
-            for x in range(current_point[0] - 1, current_point[0] + 1):
-                for y in range(current_point[1] - 1, current_point[1] + 1):
-                    if gamemap.get_land_type(gamemap.val_at((x, y))) != "water" and not visited[(x, y)]:
-                        frontier.insert(0, (x, y)) 
-            
-            visited.put(current_point, True)
+        visited_by = {}
+        cost_so_far = {}
+        frontier = datastructures.PriorityQueue()
+
+        cost_so_far[start_point] = 0
+        visited_by[start_point] = None
+
+        while not collide_with(current_point, dest) and not frontier.is_empty():
+            print(frontier)
+
+            for neighbor in neighbors(current_point):
+                new_cost = cost_so_far[current_point] + self.get_traverse_cost(gamemap, neighbor)
+                if neighbor not in cost_so_far or new_cost < cost_so_far[current_point]:
+                    cost_so_far[neighbor] = new_cost
+                    frontier.put(neighbor, new_cost)
+                    visited_by[neighbor] = current_point
+                    
             current_point = frontier.pop()
-        
-        #now that we have visited points up to the destination,
-        #work backwards from the destination through the 
-        #visited list, taking the points closest to the start location:
+
         path = []
-        while current_point != start_point:
-            options = []
-            for x in range(current_point[0] - 1, current_point[0] + 1):
-                for y in range(current_point[1] - 1, current_point[1] + 1):
-                    if visited[(x, y)]:
-                        options.append(((x, y), math.sqrt((start_point[0] - x)**2 + (start_point[1] - y)**2))
-            
-            max_distance = 0
-            final_option = None
-            for option in options:
-                if option[1] > max_distance:
-                    final_option = option[0]
-            
-            path.append(final_option)
+        while current_point != None and not collide_with(current_point, start_point):
+            path.insert(0, current_point)
+            current_point = visited_by[current_point]
+
+        print(path)
 
         return path
 
@@ -152,8 +165,21 @@ class Entity(pygame.sprite.Sprite):
 
     def can_traverse(self, gamemap, pos): 
         center = (int(pos[0] + self.rect.width/2), int(pos[1] + self.rect.height/2))
-        return int(gamemap.get_land_type(gamemap.val_at(center)) == "grassland")
 
+        try:
+            if self.entity_type == "UNIT":
+                return int(gamemap.get_land_type(gamemap.val_at(center)) == "grassland")
+            else:
+                return int(gamemap.get_land_type(gamemap.val_at(center)) == "water")
+        except: return False
+
+    def get_traverse_cost(self, gamemap, point):
+        if not self.can_traverse(gamemap, point):
+            return 1000 #returns a super high number if it can't traverse the region at all.
+        
+        #todo make costs for all entity types
+
+        return 1
 
     def move_to(self, position):
         self.rect = Rect(position[0], position[1], self.rect.width, self.rect.height)
