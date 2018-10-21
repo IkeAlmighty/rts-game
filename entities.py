@@ -30,55 +30,22 @@ def update():
     for entity in outdated_entities:
         entity.update()
 
-def get_entity_type_image(entity_type, owner):
-    
-    image = preloading.default
-
-    if entity_type == "TREE":
-        if random.randint(0, 1) == 0:
-            image = preloading.tree_image
-        else: 
-            image = preloading.tree_small_image
-    elif entity_type == "UNIT":
-        if owner == 0:
-            image = preloading.default_unit
-    elif entity_type == "RELIC":
-        image = preloading.relic_image
-    elif entity_type == "DOT":
-        image = preloading.dot_image
-    elif entity_type == "SHIP_WRECK":
-        image = preloading.ship_reck_image
-
-    return image
-
-def match_options_to_type(entity_type):
-
-    if entity_type == "TREE":
-        return ["Chop", "Grow", "Eat", "Burn"]
-
-    return [] #empty options list.
-
 class Entity(pygame.sprite.Sprite):
 
     #the entity location should be passed as the topleft of the entity, but is corrected to be
     #the graphical center when the entity is created.
-    def __init__(self, entity_type, location, value = 0, speed = 0, owner = 0):
+    def __init__(self, image, location, speed = 0):
         super().__init__()
-        self.image_not_selected = get_entity_type_image(entity_type, owner)
+        self.image_not_selected = image
         self.image = self.image_not_selected
 
-        self.options = match_options_to_type(entity_type)
-
-        self.value = value
-        self.owner = owner
+        self.options = []
 
         self.location = [int(location[0] - self.image.get_rect().width/2), int(location[1] - self.image.get_rect().height/2)]
 
         self.path = []
         self.speed = speed
         self.speed_tstamp = pygame.time.get_ticks()
-
-        self.entity_type = entity_type
 
         self.rect = self.image.get_rect()
         self.rect = self.rect.move(self.location[0], self.location[1])
@@ -88,9 +55,6 @@ class Entity(pygame.sprite.Sprite):
         self.image_selected.blit(self.image_not_selected, (0, 0))
 
         self.is_selected = False
-    
-    def get_owner(self):
-        return self.owner
 
     def set_selected(self, isSelected):
         self.is_selected = isSelected
@@ -154,7 +118,6 @@ class Entity(pygame.sprite.Sprite):
     def set_dest(self, gamemap, dest):
         dest = (dest[0] - int(self.rect.width/2), dest[1] - int(self.rect.height/2))
         self.path = self.create_path(gamemap, dest)
-        # print(self.path)
     
     def update(self):
         if len(self.path) > 0:
@@ -164,32 +127,41 @@ class Entity(pygame.sprite.Sprite):
                     self.move_to(pos)
 
     def can_traverse(self, gamemap, pos): 
-        center = (int(pos[0] + self.rect.width/2), int(pos[1] + self.rect.height/2))
-
-        try:
-            if self.entity_type == "UNIT":
-                return int(gamemap.get_land_type(gamemap.val_at(center)) == "grassland")
-            else:
-                return int(gamemap.get_land_type(gamemap.val_at(center)) == "water")
-        except: return False
-
-    def get_traverse_cost(self, gamemap, point):
-        if not self.can_traverse(gamemap, point):
-            return 1000 #returns a super high number if it can't traverse the region at all.
-        
-        #todo make costs for all entity types
-
-        return 1
+        return True
 
     def move_to(self, position):
         self.rect = Rect(position[0], position[1], self.rect.width, self.rect.height)
         self.location = position
 
+class Unit(Entity):
+
+    def __init__(self, owner, location, unit_type_num):
+        super().__init__(preloading.default_unit, location, 3)
+        self.location = location
+        self.owner = owner
+        self.unit_type_id = unit_type_num
+
+        self.options = ["Sacrifice", "Upgrade", "Rename"]
+
+class Shipwreck(Entity):
+
+    def __init__(self, location):
+        super().__init__(preloading.ship_reck_image, location, 6)
+        self.location = location
+
+        self.options = ["DESTROY"]
+
+class Tree(Entity):
+    def __init__(self, location, value):
+        image = None
+        if random.randint(0, 100) > 60:
+            image = preloading.tree_image
+        else:
+            image = preloading.tree_small_image
+        super().__init__(image, location)
+
+        self.value = value
+        self.location = location
+
     def __str__(self):
-        return self.entity_type.__str__() + " val:(" + self.value.__str__() + ") pos:" + self.location.__str__()
-
-    def __eq__(self, other):
-        return isinstance(other, type(self)) and other.location[0] == self.location[0] and other.location[1] == self.location[1]
-
-    def __ne__(self, other):
-        return not other == self
+        return "TREE: " + (self.location[0]*gamemapping.squ_width, self.location[1]*gamemapping.squ_width).__str__() + ", value: " + self.value.__str__()

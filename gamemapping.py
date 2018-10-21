@@ -1,7 +1,7 @@
 import pygame, math, noise, colordefs, random, entities
 from pygame.sprite import Sprite
 from pygame import Rect
-from entities import Entity
+from entities import *
 
 squ_width = 3
 
@@ -44,8 +44,6 @@ class GameMap(pygame.sprite.Sprite):
             [(self.max_val - self.min_val)*(percent_water + percent_land + 2.3*percent_mountain/3) + self.min_val, "mountain_mid"], 
             [self.max_val, "mountain_high"]
         ]
-
-        print(self.thresholds, " min_val=", self.min_val, ", max_val=", self.max_val)
         
         self.width = size[0]*squ_width #width in pixels, not squares
         self.height = size[1]*squ_width
@@ -98,11 +96,11 @@ class GameMap(pygame.sprite.Sprite):
                 if value > 1.0: value = 1.0
 
                 if value > 0.4 and value < 0.7 and (self.get_land_type(self.value_map[x*vmapHeight + y]) == "grassland" or self.get_land_type(self.value_map[x*vmapHeight + y]) == "mountain_low") and random.randint(0, 10000) > 9996: 
-                    entity = Entity("TREE", (x*squ_width, y*squ_width), random.randint(10, 50))
+                    entity = entities.Tree((x*squ_width, y*squ_width), random.randint(10, 50))
                     entities.add_entity(entity) #this works janky 
                     self.drawEntity(entity)
                 elif value >= 0.7 and self.get_land_type(self.value_map[x*vmapHeight + y]) == "grassland" and random.randint(0, 10000) > 9990: 
-                    entity = Entity("TREE", (x*squ_width, y*squ_width), random.randint(20, 50))
+                    entity = entities.Tree((x*squ_width, y*squ_width), random.randint(20, 50))
                     entities.add_entity(entity) #this works janky 
                     self.drawEntity(entity)
 

@@ -134,12 +134,12 @@ def draw_info_panel(screen, selection):
 
     entity_options_buttons = pygame.sprite.Group()
     x = 0
-    y = scr_height - 50*2
+    y = scr_height - 50
     if len(selection) > 0:
         for option in selection[0].options:
             if x >= 150:
                 x = 0
-                y += 50
+                y -= 50
             button = controls.Button((x, y, 48, 48), ident=option, text=option, colors=(colordefs.WHITE, colordefs.BLACK))
             entity_options_buttons.add(button)
             x += 50

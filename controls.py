@@ -74,6 +74,15 @@ def key_released(key):
 def mouse_clicked(button_index):
     return not pygame.mouse.get_pressed()[button_index] and last_frame_mouse[button_index] == True
 
+def mouse_wheel_rolled_up():
+    global events
+    for event in events:
+        print(event)
+        if event == pygame.MOUSEBUTTONDOWN and event.button == 4:
+            return True
+    
+    return False
+
 def get_selection(gameMap):
     global select_box_start
     global select_box
