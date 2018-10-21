@@ -14,7 +14,7 @@ class PriorityQueue:
                 self.__queue.remove(elem)
 
         for other_elem in self.__queue:
-            if self.__priorities[other_elem] > priority:
+            if self.__priorities[other_elem] < priority:
                 self.__queue.insert(self.__queue.index(other_elem), elem)
                 self.__priorities[elem] = priority
                 return
@@ -30,7 +30,7 @@ class PriorityQueue:
         return elem
 
     def is_empty(self):
-        return len(self.__queue) > 0
+        return len(self.__queue) == 0
 
     def __str__(self):
         return self.__queue.__str__()

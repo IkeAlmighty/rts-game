@@ -22,7 +22,7 @@ def main():
 
     app.init_slot_buttons()
 
-    shipwreck = entities.Unit(None, (100, 100), 0)
+    shipwreck = entities.Shipwreck((100, 100))
     entities.add_entity(shipwreck)
     app.gamemap.drawEntity(shipwreck)
 

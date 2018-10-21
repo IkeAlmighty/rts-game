@@ -25,7 +25,7 @@ def init_gamemap():
     global gamemap
     global map_size
     start_time = pygame.time.get_ticks()
-    gamemap = gamemapping.GameMap(map_size,0.9, 0.0, 0.1)
+    gamemap = gamemapping.GameMap(map_size,0.7, 0.2, 0.1)
     print("generated ", map_size[0]*map_size[1], " block map in ", pygame.time.get_ticks() - start_time, " ms")
 
 def init_slot_buttons():
@@ -172,6 +172,12 @@ def draw_gamemap_value(screen):
     global rel_mouse_pos
     global gamemap
 
-    terrain_pane = font.render(gamemap.val_at(rel_mouse_pos).__str__(), True, colordefs.WHITE, colordefs.BLACK)
+    land_type = None
+    try:
+        land_type = gamemap.get_pixel_land_type(rel_mouse_pos)
+    except Exception: 
+        land_type = "None"
+
+    terrain_pane = font.render(land_type, True, colordefs.WHITE, colordefs.BLACK)
 
     screen.blit(terrain_pane, (100, 0))

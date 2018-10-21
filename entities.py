@@ -69,49 +69,53 @@ class Entity(pygame.sprite.Sprite):
 
         global screen
 
-        def collide_with(point_a, point_b):
-            return point_a[0] <= point_b[0] + gamemapping.squ_width and point_a[0] > point_b[0] and point_a[1] <= point_b[1] + gamemapping.squ_width and point_a[1] > point_b[1]
-        
         def neighbors(point):
-            return [
-                (point[0] - gamemapping.squ_width, point[1]),
-                (point[0] + gamemapping.squ_width, point[1]),
-                (point[0], point[1] + gamemapping.squ_width), 
-                (point[0], point[1] - gamemapping.squ_width)
-            ]
-        
-        def heuristic(point_a, point_b):
-            return abs(point_a[0] - point_b[0]) + abs(point_a[1] - point_b[1])
+            neighbors = []
+            for x in range(-1, 2):
+                for y in range(-1, 2):
+                    if (x, y) != (0, 0) and gamemap.is_valid_pixel_pos((point[0] + x, point[1] + y)):
+                        neighbors.append((point[0] + x, point[1] + y))
+            return neighbors
 
+        def heuristic(point, dest):
+            return math.sqrt((point[0] - dest[0])**2 + (point[1] - dest[1])**2)
 
+        came_from = {}
+        cost_so_far = {}
         start_point = (int(self.location[0]), int(self.location[1]))
         current_point = start_point
 
-        visited_by = {}
-        cost_so_far = {}
-        frontier = datastructures.PriorityQueue()
-
+        came_from[start_point] = None
         cost_so_far[start_point] = 0
-        visited_by[start_point] = None
 
-        while not collide_with(current_point, dest) and not frontier.is_empty():
-            print(frontier)
+        frontier = PriorityQueue()
+        frontier.put(start_point, 0)
 
-            for neighbor in neighbors(current_point):
-                new_cost = cost_so_far[current_point] + self.get_traverse_cost(gamemap, neighbor)
-                if neighbor not in cost_so_far or new_cost < cost_so_far[current_point]:
-                    cost_so_far[neighbor] = new_cost
-                    frontier.put(neighbor, new_cost)
-                    visited_by[neighbor] = current_point
-                    
+        while not frontier.is_empty():
+            print("path finding...")
             current_point = frontier.pop()
 
-        path = []
-        while current_point != None and not collide_with(current_point, start_point):
-            path.insert(0, current_point)
-            current_point = visited_by[current_point]
+            if current_point == dest:
+                break
 
-        print(path)
+            for neighbor in neighbors(current_point):
+                print("neighbor ", neighbor)
+                new_cost = cost_so_far[current_point] + self.get_traverse_cost(neighbor, gamemap)
+                if neighbor not in cost_so_far or new_cost < cost_so_far[neighbor]:
+                    cost_so_far[neighbor] = new_cost
+                    priority = heuristic(neighbor, dest)
+                    frontier.put(neighbor, priority)
+                    came_from[neighbor] = current_point
+            
+            rel_point = (gamemap.rect.x + current_point[0], gamemap.rect.y + current_point[1])
+            screen.set_at(rel_point, (0, 0, 0))
+            pygame.display.flip()
+
+        path = []
+        while current_point != start_point:
+            print("path construction...")
+            path.insert(0, current_point)
+            current_point = came_from[current_point]            
 
         return path
 
@@ -126,8 +130,11 @@ class Entity(pygame.sprite.Sprite):
                     pos = self.path.pop(0)
                     self.move_to(pos)
 
-    def can_traverse(self, gamemap, pos): 
+    def can_traverse(self, position, gamemap): 
         return True
+    
+    def get_traverse_cost(self, point, gamemap):
+        return 1
 
     def move_to(self, position):
         self.rect = Rect(position[0], position[1], self.rect.width, self.rect.height)
@@ -143,13 +150,28 @@ class Unit(Entity):
 
         self.options = ["Sacrifice", "Upgrade", "Rename"]
 
+    def can_traverse(self, position, gamemap):
+        land_type = gamemap.get_pixel_land_type(position)
+        return land_type == "grassland"
+
+
 class Shipwreck(Entity):
 
     def __init__(self, location):
-        super().__init__(preloading.ship_reck_image, location, 6)
+        super().__init__(preloading.ship_wreck_image, location, 6)
         self.location = location
 
         self.options = ["DESTROY"]
+
+    def get_traverse_cost(self, dest_point, gamemap):
+        land_type = gamemap.get_pixel_land_type(dest_point)
+        if land_type == "water": return 1
+        
+        return 10
+
+    def can_traverse(self, point, gamemap):
+        land_type = gamemap.get_pixel_land_type(point)
+        return land_type == "water"
 
 class Tree(Entity):
     def __init__(self, location, value):
