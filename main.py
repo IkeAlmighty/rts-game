@@ -51,6 +51,14 @@ def main():
                 elif event.button == 4 and controls.locked == True:
                     controls.locked = False
                     app.center_on_mouse_from_minimap()
+
+        #activate minimap if the m key is pressed
+        if controls.key_released(pygame.K_m):
+            if controls.locked == False:
+                controls.locked = True
+            elif controls.locked == True:
+                controls.locked = False
+                app.center_on_mouse_from_minimap()
         
         #toggle the unit/building slot buttons on when alt key is pressed:
         if controls.key_released(pygame.K_LALT) or controls.key_released(pygame.K_RALT):
