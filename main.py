@@ -16,11 +16,13 @@ def main():
     screen = pygame.display.set_mode((app.scr_width, app.scr_height))
     app.font = pygame.font.SysFont('', 16)
 
+    entities.screen = screen
+
     app.init_gamemap()
 
     app.init_slot_buttons()
 
-    shipwreck = entities.Unit(None, (100, 100), 0)
+    shipwreck = entities.Shipwreck((100, 100))
     entities.add_entity(shipwreck)
     app.gamemap.drawEntity(shipwreck)
 

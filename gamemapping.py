@@ -68,15 +68,15 @@ class GameMap(pygame.sprite.Sprite):
                 value = self.value_map[x*map_height + y]
                 rect = Rect(x*squ_width, y*squ_width, squ_width, squ_width)
                 
-                if self.get_land_type(value) == "water":
+                if self.__get_land_type((x, y)) == "water":
                     self.image.fill(colordefs.WATER, rect)
-                elif self.get_land_type(value) == "grassland":
+                elif self.__get_land_type((x, y)) == "grassland":
                     self.image.fill(colordefs.LOWLAND, rect)
-                elif self.get_land_type(value) == "mountain_low":
+                elif self.__get_land_type((x, y)) == "mountain_low":
                     self.image.fill(colordefs.MOUNTAIN_LOW, rect)
-                elif self.get_land_type(value) == "mountain_mid":
+                elif self.__get_land_type((x, y)) == "mountain_mid":
                     self.image.fill(colordefs.MOUNTAIN_MID, rect)
-                elif self.get_land_type(value) == "mountain_high":
+                elif self.__get_land_type((x, y)) == "mountain_high":
                     self.image.fill(colordefs.MOUNTAIN_HIGH, rect)
                 else:
                     self.image.fill(colordefs.RED, rect)
@@ -95,19 +95,21 @@ class GameMap(pygame.sprite.Sprite):
                 if value < 0.0: value = 0.0
                 if value > 1.0: value = 1.0
 
-                if value > 0.4 and value < 0.7 and (self.get_land_type(self.value_map[x*vmapHeight + y]) == "grassland" or self.get_land_type(self.value_map[x*vmapHeight + y]) == "mountain_low") and random.randint(0, 10000) > 9996: 
+                if value > 0.4 and value < 0.7 and (self.__get_land_type((x, y)) == "grassland" or self.__get_land_type((x, y)) == "mountain_low") and random.randint(0, 10000) > 9996: 
                     entity = entities.Tree((x*squ_width, y*squ_width), random.randint(10, 50))
                     entities.add_entity(entity) #this works janky 
                     self.drawEntity(entity)
-                elif value >= 0.7 and self.get_land_type(self.value_map[x*vmapHeight + y]) == "grassland" and random.randint(0, 10000) > 9990: 
+                elif value >= 0.7 and self.__get_land_type((x, y)) == "grassland" and random.randint(0, 10000) > 9990: 
                     entity = entities.Tree((x*squ_width, y*squ_width), random.randint(20, 50))
                     entities.add_entity(entity) #this works janky 
                     self.drawEntity(entity)
 
-    def get_land_type(self, value):
+    def __get_land_type(self, position):
+        value = self.val_at(position)
 
         if value < self.min_val or value > self.max_val:
             raise Exception("Invalid terrain value: " + value.__str__())
+            SystemExit()
 
         #edge case for the following loop
         if value < self.thresholds[0][0]:
@@ -119,20 +121,33 @@ class GameMap(pygame.sprite.Sprite):
 
         return None
 
-    def __is_valid_pos(self, pos):
-        x = int(pos[0] / squ_width)
-        y = int(pos[1] / squ_width)
-        return x >= 0 and x < self.width/squ_width and y >= 0 and y < self.height/squ_width
+    def get_pixel_land_type(self, position):
+        if not self.is_valid_pixel_pos(position): return None
+        return self.__get_land_type((int(position[0]/squ_width), int(position[1]/squ_width)))
 
-    #returns the value number of a position denoted by pixels (not squares)
+
+    #returns the value number of a position denoted by squares (not pixels)
     def val_at(self, pos):
-        if not self.__is_valid_pos(pos):
-            return -1.0
-
-        x = int(pos[0] / squ_width)
-        y = int(pos[1] / squ_width)
+        if not self.is_valid_pos(pos):
+            raise Exception("Invalid Gamemap position.. ", pos)
+            SystemExit()
+        
+        x = pos[0]
+        y = pos[1]
 
         return self.value_map[x*int(self.height/squ_width) + y]
+    
+    def pixel_val_at(self, pos):
+        return val_at((int(pos[0]/squ_width), int(pos[1]/squ_width)))
+    
+    #given the square coordinates, returns whether the value is valid.
+    def is_valid_pos(self, pos):
+        x = pos[0]
+        y = pos[1]
+        return x >= 0 and x < self.width/squ_width and y >= 0 and y < self.height/squ_width
+
+    def is_valid_pixel_pos(self, pos):
+        return self.is_valid_pos((int(pos[0]/squ_width), int(pos[1]/squ_width)))
 
     def drawEntity(self, entity):
         self.image.blit(entity.image, (entity.rect.x, entity.rect.y))
