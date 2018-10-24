@@ -122,6 +122,7 @@ class GameMap(pygame.sprite.Sprite):
         return None
 
     def get_pixel_land_type(self, position):
+        if not self.is_valid_pixel_pos(position): return None
         return self.__get_land_type((int(position[0]/squ_width), int(position[1]/squ_width)))
 
 

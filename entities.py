@@ -41,7 +41,9 @@ class Entity(pygame.sprite.Sprite):
 
         self.options = []
 
-        self.location = [int(location[0] - self.image.get_rect().width/2), int(location[1] - self.image.get_rect().height/2)]
+        self.x_off = -1*self.image.get_rect().width/2
+        self.y_off = -1*self.image.get_rect().height/2
+        self.location = [int(location[0] + self.x_off), int(location[1] + self.y_off)]
 
         self.path = []
         self.speed = speed
@@ -63,11 +65,46 @@ class Entity(pygame.sprite.Sprite):
         else:
             self.image = self.image_not_selected
 
+    def __find_traversable_point(self, start_point, gamemap):
+
+        def neighbors(point):
+            neighbors = []
+            for x in range(-1, 2):
+                for y in range(-1, 2):
+                    if (x, y) != (0, 0) and gamemap.is_valid_pixel_pos((point[0] + x, point[1] + y)):
+                        neighbors.append((point[0] + x, point[1] + y))
+            return neighbors
+
+        visited = {}
+        frontier = []
+        current_point = (int(start_point[0]), int(start_point[1]))
+
+        frontier.append(current_point)
+
+        while len(frontier) > 0:
+
+            if self.can_traverse(current_point, gamemap):
+                return current_point
+
+            for neighbor in neighbors(current_point):
+                if neighbor not in frontier and visited.get(neighbor) == None:
+                    frontier.insert(0, neighbor)
+
+            visited[current_point] = True
+            current_point = frontier.pop()
+
+        return current_point
+            
+
     #returns a path to the location in the form 
     #of an array of points.
-    def create_path(self, gamemap, dest):
+    def create_path(self, dest, gamemap):
 
-        global screen
+        if not gamemap.is_valid_pixel_pos(dest):
+            return []
+
+        if not self.can_traverse(dest, gamemap):
+            dest = self.__find_traversable_point(dest, gamemap)
 
         def neighbors(point):
             neighbors = []
@@ -92,36 +129,37 @@ class Entity(pygame.sprite.Sprite):
         frontier.put(start_point, 0)
 
         while not frontier.is_empty():
-            print("path finding...")
+            # print("path finding...")
             current_point = frontier.pop()
+
+            # print("current point = ", current_point, " dest = ", dest, " ", current_point == dest)
 
             if current_point == dest:
                 break
 
             for neighbor in neighbors(current_point):
-                print("neighbor ", neighbor)
+                # print("neighbor ", neighbor)
                 new_cost = cost_so_far[current_point] + self.get_traverse_cost(neighbor, gamemap)
-                if neighbor not in cost_so_far or new_cost < cost_so_far[neighbor]:
+                if (neighbor not in cost_so_far.keys() or new_cost < cost_so_far[neighbor]) and self.can_traverse(neighbor, gamemap):
                     cost_so_far[neighbor] = new_cost
                     priority = heuristic(neighbor, dest)
                     frontier.put(neighbor, priority)
                     came_from[neighbor] = current_point
             
-            rel_point = (gamemap.rect.x + current_point[0], gamemap.rect.y + current_point[1])
-            screen.set_at(rel_point, (0, 0, 0))
-            pygame.display.flip()
+            # rel_point = (gamemap.rect.x + current_point[0], gamemap.rect.y + current_point[1])
+            # screen.set_at(rel_point, (0, 0, 0))
+            # pygame.display.flip()
 
         path = []
         while current_point != start_point:
-            print("path construction...")
+            # print("path construction...")
             path.insert(0, current_point)
             current_point = came_from[current_point]            
 
         return path
 
     def set_dest(self, gamemap, dest):
-        dest = (dest[0] - int(self.rect.width/2), dest[1] - int(self.rect.height/2))
-        self.path = self.create_path(gamemap, dest)
+        self.path = self.create_path(dest, gamemap)
     
     def update(self):
         if len(self.path) > 0:
@@ -131,13 +169,13 @@ class Entity(pygame.sprite.Sprite):
                     self.move_to(pos)
 
     def can_traverse(self, position, gamemap): 
-        return True
+        return gamemap.is_valid_pixel_pos(position)
     
     def get_traverse_cost(self, point, gamemap):
         return 1
 
     def move_to(self, position):
-        self.rect = Rect(position[0], position[1], self.rect.width, self.rect.height)
+        self.rect = Rect(position[0] + self.x_off, position[1] + self.y_off, self.rect.width, self.rect.height)
         self.location = position
 
 class Unit(Entity):
@@ -152,7 +190,7 @@ class Unit(Entity):
 
     def can_traverse(self, position, gamemap):
         land_type = gamemap.get_pixel_land_type(position)
-        return land_type == "grassland"
+        return land_type == "grassland" and gamemap.is_valid_pixel_pos(position)
 
 
 class Shipwreck(Entity):
@@ -169,9 +207,8 @@ class Shipwreck(Entity):
         
         return 10
 
-    def can_traverse(self, point, gamemap):
-        land_type = gamemap.get_pixel_land_type(point)
-        return land_type == "water"
+    def can_traverse(self, position, gamemap):
+        return gamemap.get_pixel_land_type(position) == "water" and gamemap.is_valid_pixel_pos(position)
 
 class Tree(Entity):
     def __init__(self, location, value):
