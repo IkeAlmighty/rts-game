@@ -36,8 +36,8 @@ class Entity(pygame.sprite.Sprite):
     #the graphical center when the entity is created.
     def __init__(self, image, location, speed = 0):
         super().__init__()
-        self.image_not_selected = image
-        self.image = self.image_not_selected
+        self.base_image = image
+        self.image = self.base_image.copy()
 
         self.options = []
 
@@ -52,18 +52,21 @@ class Entity(pygame.sprite.Sprite):
         self.rect = self.image.get_rect()
         self.rect = self.rect.move(self.location[0], self.location[1])
 
-        self.image_selected = Surface((self.rect.width, self.rect.height), pygame.SRCALPHA)
-        self.image_selected.fill((57, 57, 69, 100))
-        self.image_selected.blit(self.image_not_selected, (0, 0))
+        self.base_image_selected = Surface((self.rect.width, self.rect.height), pygame.SRCALPHA)
+        self.base_image_selected.fill((57, 57, 69, 100))
+        self.base_image_selected.blit(self.base_image, (0, 0))
+
+        self.image_selected = self.base_image_selected.copy()
 
         self.is_selected = False
 
     def set_selected(self, isSelected):
+        print("selected!")
         self.is_selected = isSelected
         if isSelected:
             self.image = self.image_selected
         else:
-            self.image = self.image_not_selected
+            self.image = self.base_image
 
     def __find_traversable_point(self, start_point, gamemap):
 
@@ -166,12 +169,53 @@ class Entity(pygame.sprite.Sprite):
 
     def set_dest(self, gamemap, dest):
         self.path = self.create_path(dest, gamemap)
+
+    #returns the angle between two vectors
+    def __get_theta(self, vec):
+        mag = math.sqrt(vec[0]**2 + vec[1]**2)
+        unit_vec = (vec[0]/mag, vec[1]/mag)
+
+        offset = 45
+
+        if unit_vec[0] == 0 and unit_vec[1] < 0:
+            return offset
+
+        if unit_vec[0] == 0 and unit_vec[1] > 0:
+            return offset + 180
+
+        if unit_vec[0] < 0 and unit_vec[1] == 0:
+            return offset + 90
+
+        if unit_vec[0] > 0 and unit_vec[1] == 0:
+            return offset + 270
+
+        if unit_vec[0] < 0 and unit_vec[1] < 0:
+            return offset + 45
+
+        if unit_vec[0] < 0 and unit_vec[1] > 0:
+            return offset + 135
+
+        if unit_vec[0] > 0 and unit_vec[1] > 0:
+            return offset + 225
+
+        if unit_vec[0] > 0 and unit_vec[1] < 0:
+            return offset + 315   
+
+        raise Exception("vec of (0,0) passed to entity.__get_theta(vec)")
     
     def update(self):
         if len(self.path) > 0:
             for i in range(0, self.speed):
                 if len(self.path) > 0:
                     pos = self.path.pop(0)
+                    #turn the ship image to face the direction it is moving:
+                    # TODO: Make this work (with selected image as well)
+                    vec = (pos[0] - self.location[0], pos[1] - self.location[1])
+                    theta = self.__get_theta(vec)
+                    print(theta)
+                    self.image = pygame.transform.rotate(self.base_image, theta)
+                    self.image_selected = pygame.transform.rotate(self.base_image_selected, theta)
+                    self.rect = self.image.get_rect()
                     self.move_to(pos)
 
     def can_traverse(self, position, gamemap): 
