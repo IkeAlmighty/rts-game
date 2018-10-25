@@ -22,9 +22,9 @@ def main():
 
     app.init_slot_buttons()
 
-    shipwreck = entities.Shipwreck((100, 100))
-    entities.add_entity(shipwreck)
-    app.gamemap.drawEntity(shipwreck)
+    ship = entities.Ship((100, 100))
+    entities.add_entity(ship)
+    app.gamemap.drawEntity(ship)
 
     clock = pygame.time.Clock()
     running = True

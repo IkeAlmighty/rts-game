@@ -71,8 +71,8 @@ class Entity(pygame.sprite.Sprite):
             neighbors = []
             for x in range(-1, 2):
                 for y in range(-1, 2):
-                    if (x, y) != (0, 0) and gamemap.is_valid_pixel_pos((point[0] + x, point[1] + y)):
-                        neighbors.append((point[0] + x, point[1] + y))
+                    if (x*gamemapping.squ_width, y*gamemapping.squ_width) != (0, 0) and gamemap.is_valid_pixel_pos((point[0] + x*gamemapping.squ_width, point[1] + y*gamemapping.squ_width)):
+                        neighbors.append((point[0] + x*gamemapping.squ_width, point[1] + y*gamemapping.squ_width))
             return neighbors
 
         visited = {}
@@ -110,12 +110,15 @@ class Entity(pygame.sprite.Sprite):
             neighbors = []
             for x in range(-1, 2):
                 for y in range(-1, 2):
-                    if (x, y) != (0, 0) and gamemap.is_valid_pixel_pos((point[0] + x, point[1] + y)):
-                        neighbors.append((point[0] + x, point[1] + y))
+                    if (x*gamemapping.squ_width, y*gamemapping.squ_width) != (0, 0) and gamemap.is_valid_pixel_pos((point[0] + x*gamemapping.squ_width, point[1] + y*gamemapping.squ_width)):
+                        neighbors.append((point[0] + x*gamemapping.squ_width, point[1] + y*gamemapping.squ_width))
             return neighbors
 
         def heuristic(point, dest):
             return math.sqrt((point[0] - dest[0])**2 + (point[1] - dest[1])**2)
+
+        def collide_squ_width(a, b):
+            return a[0] >= b[0] and a[1] >= b[1] and a[0] <= b[0] + gamemapping.squ_width and a[1] <= b[1] + gamemapping.squ_width
 
         came_from = {}
         cost_so_far = {}
@@ -134,7 +137,7 @@ class Entity(pygame.sprite.Sprite):
 
             # print("current point = ", current_point, " dest = ", dest, " ", current_point == dest)
 
-            if current_point == dest:
+            if collide_squ_width(current_point, dest):
                 break
 
             for neighbor in neighbors(current_point):
@@ -142,13 +145,16 @@ class Entity(pygame.sprite.Sprite):
                 new_cost = cost_so_far[current_point] + self.get_traverse_cost(neighbor, gamemap)
                 if (neighbor not in cost_so_far.keys() or new_cost < cost_so_far[neighbor]) and self.can_traverse(neighbor, gamemap):
                     cost_so_far[neighbor] = new_cost
-                    priority = heuristic(neighbor, dest)
+                    priority = cost_so_far[neighbor] + heuristic(neighbor, dest)
                     frontier.put(neighbor, priority)
                     came_from[neighbor] = current_point
             
             # rel_point = (gamemap.rect.x + current_point[0], gamemap.rect.y + current_point[1])
             # screen.set_at(rel_point, (0, 0, 0))
             # pygame.display.flip()
+
+        if not collide_squ_width(current_point, dest):
+            return []
 
         path = []
         while current_point != start_point:
@@ -196,7 +202,7 @@ class Unit(Entity):
 class Shipwreck(Entity):
 
     def __init__(self, location):
-        super().__init__(preloading.ship_wreck_image, location, 6)
+        super().__init__(preloading.ship_wreck_image, location)
         self.location = location
 
         self.options = ["DESTROY"]
@@ -224,3 +230,13 @@ class Tree(Entity):
 
     def __str__(self):
         return "TREE: " + (self.location[0]*gamemapping.squ_width, self.location[1]*gamemapping.squ_width).__str__() + ", value: " + self.value.__str__()
+
+class Ship(Entity):
+
+    def __init__(self, location, health=20):
+        image = preloading.ship_image
+        super().__init__(image, location, speed=1)
+        self.health = health
+
+    def can_traverse(self, position, gamemap):
+        return gamemap.get_pixel_land_type(position) == "water"
